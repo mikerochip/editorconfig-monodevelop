@@ -1,5 +1,15 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <ExtensionModel>
-	<Runtime>
-	</Runtime>
+    <Runtime>
+    </Runtime>
+    <Extension path = "/MonoDevelop/Ide/Commands/Edit">
+    <Command id = "EditorConfig.Addin.Commands.ExecuteEditorConfig"
+             _label = "Execute EditorConfig"
+             _description = "Parse .editorconfig settings and execute changes on the current file"
+             defaultHandler = "EditorConfig.Addin.ExecuteEditorConfigCommandHandler" />
+    </Extension>
+
+    <Extension path = "/MonoDevelop/Ide/MainMenu/Edit">
+        <CommandItem id="EditorConfig.Addin.Commands.ExecuteEditorConfig" />
+    </Extension>
 </ExtensionModel>
