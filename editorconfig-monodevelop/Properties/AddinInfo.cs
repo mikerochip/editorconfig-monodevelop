@@ -10,5 +10,5 @@ using Mono.Addins.Description;
 
 [assembly: AddinName("EditorConfig")]
 [assembly: AddinCategory("IDE extensions")]
-[assembly: AddinDescription("EditorConfig addin http://editorconfig.org")]
+[assembly: AddinDescription("Adds support for EditorConfig http://editorconfig.org. Files will be modified on save.")]
 [assembly: AddinAuthor("Michael Schweitzer")]

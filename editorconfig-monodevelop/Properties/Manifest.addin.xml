@@ -3,13 +3,14 @@
     <Runtime>
     </Runtime>
     <Extension path = "/MonoDevelop/Ide/Commands/Edit">
-    <Command id = "EditorConfig.Addin.Commands.ExecuteEditorConfig"
-             _label = "Execute EditorConfig"
-             _description = "Parse .editorconfig settings and execute changes on the current file"
-             defaultHandler = "EditorConfig.Addin.ExecuteEditorConfigCommandHandler" />
+        <Command id = "EditorConfig.Addin.EditCommands.ApplyEditorConfig"
+                 _label = "Execute EditorConfig"
+                 _description = "Apply .editorconfig changes to the current file"
+                 defaultHandler = "EditorConfig.Addin.ApplyEditorConfigHandler" />
     </Extension>
 
     <Extension path = "/MonoDevelop/Ide/MainMenu/Edit">
-        <CommandItem id="EditorConfig.Addin.Commands.ExecuteEditorConfig" />
+        <SeparatorItem id = "CutSeparator" />
+        <CommandItem id="EditorConfig.Addin.EditCommands.ApplyEditorConfig" />
     </Extension>
 </ExtensionModel>
