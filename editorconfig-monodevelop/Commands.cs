@@ -9,9 +9,10 @@ using System.Linq;
 
 namespace EditorConfig.Addin
 {
-    public enum EditCommands
+    public enum Commands
     {
         ApplyEditorConfig,
+        SaveFile,
     }
 
     class ApplyEditorConfigHandler : CommandHandler
@@ -35,6 +36,16 @@ namespace EditorConfig.Addin
             IEnumerable<FileConfiguration> configs = parser.Parse(fileName);
             FileConfiguration config = configs.First();
             ApplyEditorConfigToDoc(doc, config);
+        }
+
+        [CommandHandler(FileCommands.Save)]
+        [CommandHandler(FileCommands.SaveAs)]
+        [CommandHandler(FileCommands.SaveAll)]
+        private void Foo()
+        {
+            Document doc = IdeApp.Workbench.ActiveDocument;
+
+            Log.ShowError(Log.Target.Console, "FOO WORKED");
         }
 
         private bool ShouldBeEnabled(Document doc)
