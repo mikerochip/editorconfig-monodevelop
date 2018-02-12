@@ -6,6 +6,13 @@ namespace EditorConfig.Addin
 {
     static class Log
     {
+        public enum Level
+        {
+            Info,
+            Warning,
+            Error,
+        }
+
         [Flags]
         public enum Target
         {
@@ -15,7 +22,22 @@ namespace EditorConfig.Addin
             Console = 4,
         }
 
-        public static void ShowError(Target target, string format, params object[] args)
+        public static void Info(Target target, string format, params object[] args)
+        {
+            Show(Level.Info, target, format, args);
+        }
+
+        public static void Warning(Target target, string format, params object[] args)
+        {
+            Show(Level.Warning, target, format, args);
+        }
+
+        public static void Error(Target target, string format, params object[] args)
+        {
+            Show(Level.Error, target, format, args);
+        }
+
+        public static void Show(Level level, Target target, string format, params object[] args)
         {
             bool statusBar = (target & Target.StatusBar) != 0;
             bool dialog = (target & Target.Dialog) != 0;
@@ -27,13 +49,58 @@ namespace EditorConfig.Addin
             string message = string.Format(format, args);
 
             if (statusBar)
-                IdeApp.Workbench.StatusBar.ShowError(message);
+            {
+                switch (level)
+                {
+                    case Level.Info:
+                        IdeApp.Workbench.StatusBar.ShowMessage(message);
+                        break;
+
+                    case Level.Warning:
+                        IdeApp.Workbench.StatusBar.ShowWarning(message);
+                        break;
+
+                    case Level.Error:
+                        IdeApp.Workbench.StatusBar.ShowError(message);
+                        break;
+                }
+            }
 
             // MessageService errors implicitly go to the LoggingService
             if (dialog)
-                MessageService.ShowError(message);
+            {
+                switch (level)
+                {
+                    case Level.Info:
+                        MessageService.ShowMessage(message);
+                        break;
+
+                    case Level.Warning:
+                        MessageService.ShowWarning(message);
+                        break;
+
+                    case Level.Error:
+                        MessageService.ShowError(message);
+                        break;
+                }
+            }
             else if (console)
-                LoggingService.LogError(message);
+            {
+                switch (level)
+                {
+                    case Level.Info:
+                        LoggingService.LogInfo(message);
+                        break;
+
+                    case Level.Warning:
+                        LoggingService.LogWarning(message);
+                        break;
+
+                    case Level.Error:
+                        LoggingService.LogError(message);
+                        break;
+                }
+            }
         }
     }
 }

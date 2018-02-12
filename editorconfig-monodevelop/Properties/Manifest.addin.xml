@@ -2,22 +2,20 @@
 <ExtensionModel>
     <Runtime>
     </Runtime>
+
+    <Extension path = "/MonoDevelop/Ide/StartupHandlers">
+        <Class class = "EditorConfig.Addin.StartupHandler"/>
+    </Extension>
+    
     <Extension path = "/MonoDevelop/Ide/Commands/Edit">
         <Command id = "EditorConfig.Addin.Commands.ApplyEditorConfig"
-                 _label = "Execute EditorConfig"
+                 _label = "Apply EditorConfig"
                  _description = "Apply .editorconfig changes to the current file"
                  defaultHandler = "EditorConfig.Addin.ApplyEditorConfigHandler" />
     </Extension>
-
-    <Extension path = "/MonoDevelop/Ide/Commands/File">
-        <Command id = "EditorConfig.Addin.Commands.SaveFile"
-                 _label = "Execute EditorConfig"
-                 _description = "Apply .editorconfig changes to the current file"
-                 defaultHandler = "EditorConfig.Addin.ApplyEditorConfigHandler" />
-    </Extension>
-
+    
     <Extension path = "/MonoDevelop/Ide/MainMenu/Edit">
         <SeparatorItem id = "CutSeparator" />
-        <CommandItem id="EditorConfig.Addin.Commands.ApplyEditorConfig" />
+        <CommandItem id = "EditorConfig.Addin.Commands.ApplyEditorConfig" />
     </Extension>
 </ExtensionModel>
