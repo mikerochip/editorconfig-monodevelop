@@ -12,8 +12,9 @@ using Mono.Addins.Description;
 [assembly: AddinCategory("IDE extensions")]
 [assembly: AddinAuthor("Michael Schweitzer")]
 [assembly: AddinDescription(
-    "Adds support for EditorConfig http://editorconfig.org. "
-    + "Files are modified on save, and there is a new Edit menu command.\n"
+    "Adds support for EditorConfig http://editorconfig.org."
+    + "Implementation generally follows this post: https://github.com/editorconfig/editorconfig/issues/248#issuecomment-166980703"
+    + "\n"
     + "\nSupported features:\n"
     + "\nindent_style"
     + "\nindent_size"

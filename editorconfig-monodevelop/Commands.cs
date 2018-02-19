@@ -7,10 +7,20 @@ namespace EditorConfig.Addin
 {
     public enum Commands
     {
-        ApplyEditorConfig,
+        LoadSettings,
+        Apply,
+        ToggleApplyEol,
     }
 
-    class ApplyEditorConfigHandler : CommandHandler
+    class StartupHandler : CommandHandler
+    {
+        protected override void Run()
+        {
+            CommandHooks.Initialize();
+        }
+    }
+
+    class LoadSettingsHandler : CommandHandler
     {
         protected override void Update(CommandInfo info)
         {
@@ -23,15 +33,37 @@ namespace EditorConfig.Addin
         {
             Document doc = IdeApp.Workbench.ActiveDocument;
 
-            Engine.Transform(doc);
+            Engine.LoadSettings(doc);
         }
     }
 
-    class StartupHandler : CommandHandler
+    class ApplyHandler : CommandHandler
     {
+        protected override void Update(CommandInfo info)
+        {
+            Document doc = IdeApp.Workbench.ActiveDocument;
+
+            info.Enabled = (doc != null && doc.Editor != null);
+        }
+
         protected override void Run()
         {
-            CommandHooks.Initialize();
+            Document doc = IdeApp.Workbench.ActiveDocument;
+
+            Engine.Apply(doc);
+        }
+    }
+
+    class ToggleApplyEolHandler : CommandHandler
+    {
+        protected override void Update(CommandInfo info)
+        {
+            info.Checked = Engine.ShouldApplyEol;
+        }
+
+        protected override void Run()
+        {
+            Engine.ShouldApplyEol = !Engine.ShouldApplyEol;
         }
     }
 }

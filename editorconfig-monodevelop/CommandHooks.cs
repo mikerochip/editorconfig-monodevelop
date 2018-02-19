@@ -51,12 +51,12 @@ namespace EditorConfig.Addin
 
         static void OnPreFileSave(CommandInfo info)
         {
-            Engine.Transform(IdeApp.Workbench.ActiveDocument);
+            Engine.Apply(IdeApp.Workbench.ActiveDocument);
         }
 
         static void OnPreFileSaveAll(CommandInfo info)
         {
-            Engine.Transform(IdeApp.Workbench.Documents);
+            Engine.Apply(IdeApp.Workbench.Documents);
         }
 
         static void OnCommandActivated(object sender, CommandActivationEventArgs e)

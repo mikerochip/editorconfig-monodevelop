@@ -8,14 +8,28 @@
     </Extension>
     
     <Extension path = "/MonoDevelop/Ide/Commands/Edit">
-        <Command id = "EditorConfig.Addin.Commands.ApplyEditorConfig"
-                 _label = "Apply EditorConfig"
-                 _description = "Apply .editorconfig changes to the current file"
-                 defaultHandler = "EditorConfig.Addin.ApplyEditorConfigHandler" />
+        <Command id = "EditorConfig.Addin.Commands.LoadSettings"
+                 _label = "Reload Editor Settings for Current File"
+                 _description = "Update text editor settings, which normally happens on file open."
+                 defaultHandler = "EditorConfig.Addin.LoadSettingsHandler" />
+        
+        <Command id = "EditorConfig.Addin.Commands.Apply"
+                 _label = "Apply Changes to Current File"
+                 _description = "Change the current file now, which normally happens on file save."
+                 defaultHandler = "EditorConfig.Addin.ApplyHandler" />
+
+        <Command id = "EditorConfig.Addin.Commands.ToggleApplyEol"
+                 _label = "Let EOL Settings Change Files"
+                 _description = "Let the end_of_line feature change files instead of just changing IDE settings."
+                 defaultHandler = "EditorConfig.Addin.ToggleApplyEolHandler" />
     </Extension>
     
     <Extension path = "/MonoDevelop/Ide/MainMenu/Edit">
         <SeparatorItem id = "CutSeparator" />
-        <CommandItem id = "EditorConfig.Addin.Commands.ApplyEditorConfig" />
+        <ItemSet id = "EditorConfig" _label = "EditorConfig">
+            <CommandItem id = "EditorConfig.Addin.Commands.LoadSettings" />
+            <CommandItem id = "EditorConfig.Addin.Commands.Apply" />
+            <CommandItem id = "EditorConfig.Addin.Commands.ToggleApplyEol" />>
+        </ItemSet>
     </Extension>
 </ExtensionModel>

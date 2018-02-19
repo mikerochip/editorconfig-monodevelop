@@ -15,6 +15,9 @@ namespace EditorConfig.Addin
 {
     public static class Engine
     {
+        public static bool ShouldApplyEol { get; set; } = true;
+
+
         public static FileConfiguration ParseConfig(Document doc)
         {
             EditorConfigParser parser = new EditorConfigParser();
@@ -127,25 +130,25 @@ namespace EditorConfig.Addin
         }
 
 
-        public static void Transform(Document doc)
+        public static void Apply(Document doc)
         {
             FileConfiguration config = ParseConfig(doc);
-            Transform(doc, config);
+            Apply(doc, config);
         }
 
-        public static void Transform(IEnumerable<Document> docs)
+        public static void Apply(IEnumerable<Document> docs)
         {
             foreach (Document doc in docs)
             {
                 FileConfiguration config = ParseConfig(doc);
-                Transform(doc, config);
+                Apply(doc, config);
             }
         }
 
-        public static void Transform(Document doc, FileConfiguration config)
+        public static void Apply(Document doc, FileConfiguration config)
         {
             //Log.Info(Log.Target.Console,
-            //         "Transform doc={0} name=\"{1}\" props={2}",
+            //         "Apply doc={0} name=\"{1}\" props={2}",
             //         doc, doc.Name, config.Properties.Count);
 
             if (doc == null)
@@ -158,13 +161,14 @@ namespace EditorConfig.Addin
             if (editor == null)
                 return;
 
-            Transform_Charset(editor, config);
-            Transform_TrimTrailingWhitespace(editor, config);
-            Transform_InsertFinalNewline(editor, config);
-            Transform_EndOfLine(editor, config);
+            Apply_Charset(editor, config);
+            Apply_TrimTrailingWhitespace(editor, config);
+            Apply_InsertFinalNewline(editor, config);
+            if (ShouldApplyEol)
+                Apply_EndOfLine(editor, config);
         }
 
-        static void Transform_Charset(
+        static void Apply_Charset(
             TextEditor editor,
             FileConfiguration config)
         {
@@ -195,7 +199,7 @@ namespace EditorConfig.Addin
             }
         }
 
-        static void Transform_TrimTrailingWhitespace(
+        static void Apply_TrimTrailingWhitespace(
             TextEditor editor,
             FileConfiguration config)
         {
@@ -208,12 +212,12 @@ namespace EditorConfig.Addin
             List<TextChange> changes = new List<TextChange>();
 
             foreach (IDocumentLine line in editor.GetLines())
-                Transform_TrimTrailingWhitespace(editor, line, changes);
+                Apply_TrimTrailingWhitespace(editor, line, changes);
             
             editor.ApplyTextChanges(changes);
         }
 
-        static void Transform_TrimTrailingWhitespace(
+        static void Apply_TrimTrailingWhitespace(
             TextEditor editor,
             IDocumentLine line,
             List<TextChange> changes)
@@ -234,7 +238,7 @@ namespace EditorConfig.Addin
             changes.Add(change);
         }
 
-        static void Transform_InsertFinalNewline(
+        static void Apply_InsertFinalNewline(
             TextEditor editor,
             FileConfiguration config)
         {
@@ -243,12 +247,12 @@ namespace EditorConfig.Addin
 
             List<TextChange> changes = new List<TextChange>();
 
-            Transform_InsertFinalNewline(editor, config, changes);
+            Apply_InsertFinalNewline(editor, config, changes);
 
             editor.ApplyTextChanges(changes);
         }
 
-        static void Transform_InsertFinalNewline(
+        static void Apply_InsertFinalNewline(
             TextEditor editor,
             FileConfiguration config,
             List<TextChange> changes)
@@ -320,7 +324,7 @@ namespace EditorConfig.Addin
             return delimiter;
         }
 
-        static void Transform_EndOfLine(
+        static void Apply_EndOfLine(
             TextEditor editor,
             FileConfiguration config)
         {
@@ -332,13 +336,13 @@ namespace EditorConfig.Addin
             for (int i = 1; i < editor.LineCount; ++i)
             {
                 IDocumentLine line = editor.GetLine(i);
-                Transform_EndOfLine(editor, config, line, changes);
+                Apply_EndOfLine(editor, config, line, changes);
             }
 
             editor.ApplyTextChanges(changes);
         }
 
-        static void Transform_EndOfLine(
+        static void Apply_EndOfLine(
             TextEditor editor,
             FileConfiguration config,
             IDocumentLine line,
