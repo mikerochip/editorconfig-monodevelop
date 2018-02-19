@@ -31,9 +31,9 @@ namespace EditorConfig.Addin
             
             FileConfiguration config = ParseConfig(doc);
 
-            Log.Info(Log.Target.Console,
-                     "LoadSettings doc={0} name=\"{1}\" props={2}",
-                     doc, doc.Name, config.Properties.Count);
+            //Log.Info(Log.Target.Console,
+            //         "LoadSettings doc={0} name=\"{1}\" props={2}",
+            //         doc, doc.Name, config.Properties.Count);
 
             TextEditor editor = doc.Editor;
             if (editor == null)
@@ -107,7 +107,9 @@ namespace EditorConfig.Addin
                 config.IndentSize.NumberOfColumns == null)
                 return;
 
-            int size = options.IndentationSize;
+            //int size = options.IndentationSize;
+            int size = options.TabSize;
+
             if (config.IndentSize.UseTabWidth)
             {
                 if (config.TabWidth != null)
@@ -119,6 +121,9 @@ namespace EditorConfig.Addin
             {
                 size = config.IndentSize.NumberOfColumns.Value;
             }
+
+            //options.IndentationSize = size;
+            options.TabSize = size;
         }
 
 
@@ -139,9 +144,9 @@ namespace EditorConfig.Addin
 
         public static void Transform(Document doc, FileConfiguration config)
         {
-            Log.Info(Log.Target.Console,
-                     "Transform doc={0} name=\"{1}\" props={2}",
-                     doc, doc.Name, config.Properties.Count);
+            //Log.Info(Log.Target.Console,
+            //         "Transform doc={0} name=\"{1}\" props={2}",
+            //         doc, doc.Name, config.Properties.Count);
 
             if (doc == null)
                 return;
