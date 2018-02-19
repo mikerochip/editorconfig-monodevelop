@@ -103,10 +103,6 @@ namespace EditorConfig.Addin
 
         static void OnPostNewFile(CommandInfo info)
         {
-            bool canceled = info.AsyncUpdateCancellationToken.WaitHandle.WaitOne(5000);
-            if (canceled)
-                return;
-            
             Document doc = IdeApp.Workbench.ActiveDocument;
 
             Engine.LoadSettings(doc);
@@ -114,19 +110,11 @@ namespace EditorConfig.Addin
 
         static void OnPostNewProject(CommandInfo info)
         {
-            bool canceled = info.AsyncUpdateCancellationToken.WaitHandle.WaitOne(5000);
-            if (canceled)
-                return;
-            
             Engine.LoadSettings(IdeApp.Workbench.Documents);
         }
 
         static void OnPostFileSave(CommandInfo info)
         {
-            bool canceled = info.AsyncUpdateCancellationToken.WaitHandle.WaitOne(5000);
-            if (canceled)
-                return;
-            
             Document doc = IdeApp.Workbench.ActiveDocument;
 
             Engine.LoadSettings(doc);
@@ -134,22 +122,11 @@ namespace EditorConfig.Addin
 
         static void OnPostFileSaveAll(CommandInfo info)
         {
-            bool canceled = info.AsyncUpdateCancellationToken.WaitHandle.WaitOne(5000);
-            if (canceled)
-                return;
-            
             Engine.LoadSettings(IdeApp.Workbench.Documents);
         }
 
         static void OnPostFileOpen(CommandInfo info)
         {
-            while (!info.AsyncUpdateCancellationToken.IsCancellationRequested)
-            {
-                bool canceled = info.AsyncUpdateCancellationToken.WaitHandle.WaitOne(1000);
-                if (canceled)
-                    return;
-            }
-            
             // mschweiter MOJO: When there are no open files or projects in
             // MonoDevelop, ActiveDocument is null and the first document is
             // the newly opened file.
