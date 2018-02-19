@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using MonoDevelop.Components.Commands;
 using MonoDevelop.Ide;
 using MonoDevelop.Ide.Commands;
+using MonoDevelop.Ide.Gui;
 
 namespace EditorConfig.Addin
 {
@@ -12,17 +13,21 @@ namespace EditorConfig.Addin
         public static void Initialize()
         {
             // mschweitzer NOTE: I really don't see a better way of hooking into
-            // file saves
+            // file operations
             IdeApp.CommandService.CommandActivating += OnCommandActivating;
+            IdeApp.CommandService.CommandActivated += OnCommandActivated;
         }
 
         static void OnCommandActivating(object sender, CommandActivationEventArgs e)
         {
-            //Log.Info(Log.Target.Console, "source={0} target={1} commandId={2} enabled={3} text=\"{4}\"",
-            //         e.Source, e.Target, e.CommandId, e.CommandInfo.Enabled, e.CommandInfo.Text);
+            //Log.Info(Log.Target.Console,
+            //         "OnCommandActivating source={0} target={1} " +
+            //         "commandId={2} enabled={3} text=\"{4}\"",
+            //         e.Source, e.Target,
+            //         e.CommandId, e.CommandInfo.Enabled, e.CommandInfo.Text);
 
-            // mschweitzer HACK MAYBE: This is super not ideal, but was the best
-            // option for me. Other options were:
+            // mschweitzer HACK: This is super not ideal, but was the best option
+            // for me. Other options were:
             // 
             // 1. Attempting to use the actual FileCommands enum values, which
             //    would've required a lot of gymnastics
@@ -45,12 +50,70 @@ namespace EditorConfig.Addin
 
         static void OnPreFileSave(CommandInfo info)
         {
-            Engine.ApplyEditorConfig(IdeApp.Workbench.ActiveDocument);
+            Engine.Transform(IdeApp.Workbench.ActiveDocument);
         }
 
         static void OnPreFileSaveAll(CommandInfo info)
         {
-            Engine.ApplyEditorConfig(IdeApp.Workbench.Documents);
+            Engine.Transform(IdeApp.Workbench.Documents);
+        }
+
+        static void OnCommandActivated(object sender, CommandActivationEventArgs e)
+        {
+            //Log.Info(Log.Target.Console,
+            //         "OnCommandActivated source={0} target={1} " +
+            //         "commandId={2} enabled={3} text=\"{4}\"",
+            //         e.Source, e.Target,
+            //         e.CommandId, e.CommandInfo.Enabled, e.CommandInfo.Text);
+
+            // see mschweitzer HACK in OnCommandActivating
+            switch (e.CommandId)
+            {
+                case "MonoDevelop.Ide.Commands.FileCommands.Save":
+                case "MonoDevelop.Ide.Commands.FileCommands.SaveAs":
+                    OnPostFileSave(e.CommandInfo);
+                    break;
+
+                case "MonoDevelop.Ide.Commands.FileCommands.SaveAll":
+                    //OnPostFileSaveAll(e.CommandInfo);
+                    break;
+
+                case "MonoDevelop.Ide.Commands.FileCommands.OpenFile":
+                case "MonoDevelop.Ide.Commands.FileCommands.ReloadFile":
+                case "MonoDevelop.Ide.Commands.FileCommands.RecentFileList":
+                    OnPostFileOpen(e.CommandInfo);
+                    break;
+
+                case "MonoDevelop.Ide.Commands.FileCommands.RecentProjectList":
+                    OnPostRecentProjectList(e.CommandInfo);
+                    break;
+            }
+        }
+
+        static void OnPostFileSave(CommandInfo info)
+        {
+            Document doc = IdeApp.Workbench.ActiveDocument;
+
+            Engine.LoadSettings(doc);
+        }
+
+        static void OnPostFileSaveAll(CommandInfo info)
+        {
+            Engine.LoadSettings(IdeApp.Workbench.Documents);
+        }
+
+        static void OnPostFileOpen(CommandInfo info)
+        {
+            Document doc = IdeApp.Workbench.ActiveDocument;
+            if (doc == null && IdeApp.Workbench.Documents.Count > 0)
+                doc = IdeApp.Workbench.Documents[0];
+            
+            Engine.LoadSettings(doc);
+        }
+
+        static void OnPostRecentProjectList(CommandInfo info)
+        {
+            Engine.LoadSettings(IdeApp.Workbench.Documents);
         }
     }
 }

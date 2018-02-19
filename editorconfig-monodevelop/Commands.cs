@@ -16,14 +16,14 @@ namespace EditorConfig.Addin
         {
             Document doc = IdeApp.Workbench.ActiveDocument;
 
-            info.Enabled = Engine.IsFile(doc);
+            info.Enabled = (doc != null && doc.Editor != null);
         }
 
         protected override void Run()
         {
             Document doc = IdeApp.Workbench.ActiveDocument;
 
-            Engine.ApplyEditorConfig(doc);
+            Engine.Transform(doc);
         }
     }
 

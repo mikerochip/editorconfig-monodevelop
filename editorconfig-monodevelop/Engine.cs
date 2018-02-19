@@ -9,6 +9,8 @@ using MonoDevelop.Ide;
 using MonoDevelop.Ide.Editor;
 using MonoDevelop.Ide.Gui;
 
+using TextChange = Microsoft.CodeAnalysis.Text.TextChange;
+
 namespace EditorConfig.Addin
 {
     public static class Engine
@@ -27,85 +29,154 @@ namespace EditorConfig.Addin
             return true;
         }
 
-        public static FileConfiguration ParseEditorConfig(Document doc)
-        {
-            string fileName = doc.Name;
 
+        public static FileConfiguration ParseConfig(Document doc)
+        {
             EditorConfigParser parser = new EditorConfigParser();
-            IEnumerable<FileConfiguration> configs = parser.Parse(fileName);
+            IEnumerable<FileConfiguration> configs = parser.Parse(doc.Name);
             FileConfiguration config = configs.First();
             return config;
         }
 
-        public static IEnumerable<FileConfiguration> ParseEditorConfig(IEnumerable<Document> docs)
-        {
-            string[] fileNames = docs.Select(
-                (Document doc) =>
-                {
-                    if (!IsFile(doc))
-                        return string.Empty;
-                    
-                    return doc.Name;
-                }
-            ).ToArray();
 
-            EditorConfigParser parser = new EditorConfigParser();
-            IEnumerable<FileConfiguration> configs = parser.Parse(fileNames);
-            return configs;
+        public static void LoadSettings(Document doc)
+        {
+            if (doc == null)
+                return;
+            
+            FileConfiguration config = ParseConfig(doc);
+
+            Log.Info(Log.Target.Console,
+                     "LoadSettings doc={0} name=\"{1}\" props={2}",
+                     doc, doc.Name, config.Properties.Count);
+
+            TextEditor editor = doc.Editor;
+            if (editor == null)
+                return;
+
+            CustomEditorOptions options = new CustomEditorOptions(editor.Options);
+            LoadSettings_EndOfLine(options, config);
+            LoadSettings_IndentStyle(options, config);
+            LoadSettings_IndentSizeTabWidth(options, config);
+            editor.Options = options;
         }
 
-        public static void ApplyEditorConfig(Document doc)
-        {
-            FileConfiguration config = ParseEditorConfig(doc);
-            ApplyEditorConfig(doc, config);
-        }
-
-        public static void ApplyEditorConfig(IEnumerable<Document> docs)
+        public static void LoadSettings(IEnumerable<Document> docs)
         {
             foreach (Document doc in docs)
+                LoadSettings(doc);
+        }
+
+        static void LoadSettings_EndOfLine(CustomEditorOptions options, FileConfiguration config)
+        {
+            if (config.EndOfLine == null)
+                return;
+
+            string eolMarker = null;
+            switch (config.EndOfLine.Value)
             {
-                FileConfiguration config = ParseEditorConfig(doc);
-                ApplyEditorConfig(doc, config);
+                case EndOfLine.CR:
+                    eolMarker = "\r";
+                    break;
+
+                case EndOfLine.LF:
+                    eolMarker = "\n";
+                    break;
+
+                case EndOfLine.CRLF:
+                    eolMarker = "\r\n";
+                    break;
+            }
+            if (eolMarker == null)
+                return;
+            
+            options.OverrideDocumentEolMarker = true;
+            options.DefaultEolMarker = eolMarker;
+        }
+
+        static void LoadSettings_IndentStyle(CustomEditorOptions options, FileConfiguration config)
+        {
+            if (config.IndentStyle == null)
+                return;
+
+            switch (config.IndentStyle.Value)
+            {
+                case EditorConfig.Core.IndentStyle.Tab:
+                    options.TabsToSpaces = false;
+                    break;
+
+                case EditorConfig.Core.IndentStyle.Space:
+                    options.TabsToSpaces = true;
+                    break;
             }
         }
 
-        // support:
-        // charset
-        // indent_style
-        // indent_size
-        // end_of_line
-        // trim_trailing_whitespace
-        // insert_final_newline
-        public static void ApplyEditorConfig(Document doc, FileConfiguration config)
+        static void LoadSettings_IndentSizeTabWidth(CustomEditorOptions options, FileConfiguration config)
         {
-            if (!IsFile(doc))
+            if (config.IndentSize.UseTabWidth &&
+                config.TabWidth == null &&
+                config.IndentSize.NumberOfColumns == null)
+                return;
+
+            if (!config.IndentSize.UseTabWidth &&
+                config.IndentSize.NumberOfColumns == null)
+                return;
+
+            int size = options.IndentationSize;
+            if (config.IndentSize.UseTabWidth)
+            {
+                if (config.TabWidth != null)
+                    size = config.TabWidth.Value;
+                else if (config.IndentSize.NumberOfColumns != null)
+                    size = config.IndentSize.NumberOfColumns.Value;
+            }
+            else
+            {
+                size = config.IndentSize.NumberOfColumns.Value;
+            }
+        }
+
+
+        public static void Transform(Document doc)
+        {
+            FileConfiguration config = ParseConfig(doc);
+            Transform(doc, config);
+        }
+
+        public static void Transform(IEnumerable<Document> docs)
+        {
+            foreach (Document doc in docs)
+            {
+                FileConfiguration config = ParseConfig(doc);
+                Transform(doc, config);
+            }
+        }
+
+        public static void Transform(Document doc, FileConfiguration config)
+        {
+            Log.Info(Log.Target.Console,
+                     "Transform doc={0} name=\"{1}\" props={2}",
+                     doc, doc.Name, config.Properties.Count);
+
+            if (doc == null)
                 return;
             
-            Log.Info(Log.Target.Console, "ApplyEditorConfig doc={0} fileName=\"{1}\" props={2}",
-                     doc, doc.FileName.FileName, config.Properties.Count);
-
             if (config.Properties.Count == 0)
                 return;
 
             TextEditor editor = doc.Editor;
+            if (editor == null)
+                return;
 
-            HandleCharset(editor, config);
-
-            foreach (IDocumentLine line in editor.GetLines())
-                ApplyEditorConfig(editor, line, config);
+            Transform_Charset(editor, config);
+            Transform_TrimTrailingWhitespace(editor, config);
+            Transform_InsertFinalNewline(editor, config);
+            Transform_EndOfLine(editor, config);
         }
 
-        public static void ApplyEditorConfig(TextEditor editor, IDocumentLine line, FileConfiguration config)
-        {
-            if (line.UnicodeNewline == UnicodeNewline.Unknown)
-                HandleInsertFinalNewline(editor, line, config);
-            else
-                HandleEndOfLine(editor, line, config);
-
-            HandleTrimTrailingWhitespace(editor, line, config);
-        }
-
-        private static void HandleCharset(TextEditor editor, FileConfiguration config)
+        static void Transform_Charset(
+            TextEditor editor,
+            FileConfiguration config)
         {
             if (config.Charset == null)
                 return;
@@ -134,27 +205,98 @@ namespace EditorConfig.Addin
             }
         }
 
-        private static void HandleInsertFinalNewline(TextEditor editor, IDocumentLine line, FileConfiguration config)
+        static void Transform_TrimTrailingWhitespace(
+            TextEditor editor,
+            FileConfiguration config)
+        {
+            if (config.TrimTrailingWhitespace == null)
+                return;
+
+            if (!config.TrimTrailingWhitespace.Value)
+                return;
+
+            List<TextChange> changes = new List<TextChange>();
+
+            foreach (IDocumentLine line in editor.GetLines())
+                Transform_TrimTrailingWhitespace(editor, line, changes);
+            
+            editor.ApplyTextChanges(changes);
+        }
+
+        static void Transform_TrimTrailingWhitespace(
+            TextEditor editor,
+            IDocumentLine line,
+            List<TextChange> changes)
+        {
+            int offset = line.EndOffset;
+            for (; offset > line.Offset; --offset)
+            {
+                char c = editor.GetCharAt(offset - 1);
+
+                if (!char.IsWhiteSpace(c))
+                    break;
+            }
+
+            TextChange change = ChangeFromBounds(offset, line.EndOffset, string.Empty);
+            if (change.Span.Length == 0)
+                return;
+            
+            changes.Add(change);
+        }
+
+        static void Transform_InsertFinalNewline(
+            TextEditor editor,
+            FileConfiguration config)
         {
             if (config.InsertFinalNewline == null)
                 return;
-            
+
+            List<TextChange> changes = new List<TextChange>();
+
+            Transform_InsertFinalNewline(editor, config, changes);
+
+            editor.ApplyTextChanges(changes);
+        }
+
+        static void Transform_InsertFinalNewline(
+            TextEditor editor,
+            FileConfiguration config,
+            List<TextChange> changes)
+        {
+            IDocumentLine lastLine = editor.GetLine(editor.LineCount);
+
             if (config.InsertFinalNewline.Value)
             {
-                if (line.Length != 0)
-                {
-                    string newlineStr = GetBestNewlineString(editor, line, config);
-                    editor.InsertText(line.EndOffset + 1, newlineStr);
-                }
+                if (lastLine.Length == 0)
+                    return;
+                
+                string newlineString = GetBestNewlineString(editor, config, lastLine);
+                TextChange change = ChangeAtOffset(lastLine.EndOffset, newlineString);
+                changes.Add(change);
             }
             else
             {
-                if (line.Length == 0)
-                    editor.RemoveText(line.SegmentIncludingDelimiter);
+                int offset = lastLine.EndOffset;
+                for (int i = editor.LineCount; i > 0; --i)
+                {
+                    IDocumentLine currLine = editor.GetLine(i);
+                    if (currLine.Length != 0)
+                    {
+                        offset = currLine.EndOffset;
+                        break;
+                    }
+                }
+
+                // remove all trailing empty lines in one change
+                TextChange change = ChangeFromBounds(offset, lastLine.EndOffset, string.Empty);
+                changes.Add(change);
             }
         }
 
-        public static string GetBestNewlineString(TextEditor editor, IDocumentLine line, FileConfiguration config)
+        static string GetBestNewlineString(
+            TextEditor editor,
+            FileConfiguration config,
+            IDocumentLine line)
         {
             if (config.EndOfLine != null)
             {
@@ -174,11 +316,11 @@ namespace EditorConfig.Addin
             IDocumentLine lineWithDelimiter = line;
             if (line.UnicodeNewline == UnicodeNewline.Unknown)
             {
-                // first line of document with no end_of_line option...just use
-                // the editor default
+                // we don't have an end_of_line option AND this is the first line
+                // of the document...just use the editor default
                 if (line.PreviousLine == null)
                     return editor.EolMarker;
-                
+
                 lineWithDelimiter = line.PreviousLine;
             }
 
@@ -188,48 +330,67 @@ namespace EditorConfig.Addin
             return delimiter;
         }
 
-        private static void HandleEndOfLine(TextEditor editor, IDocumentLine line, FileConfiguration config)
+        static void Transform_EndOfLine(
+            TextEditor editor,
+            FileConfiguration config)
         {
             if (config.EndOfLine == null)
                 return;
-            
+
+            List<TextChange> changes = new List<TextChange>();
+
+            for (int i = 1; i < editor.LineCount; ++i)
+            {
+                IDocumentLine line = editor.GetLine(i);
+                Transform_EndOfLine(editor, config, line, changes);
+            }
+
+            editor.ApplyTextChanges(changes);
+        }
+
+        static void Transform_EndOfLine(
+            TextEditor editor,
+            FileConfiguration config,
+            IDocumentLine line,
+            List<TextChange> changes)
+        {
+            string eolMarker = null;
             switch (config.EndOfLine.Value)
             {
                 case EndOfLine.CR:
                     if (line.UnicodeNewline != UnicodeNewline.CR)
-                        editor.ReplaceText(line.EndOffset + 1, line.DelimiterLength, "\r");
+                        eolMarker = "\r";
                     break;
 
                 case EndOfLine.LF:
                     if (line.UnicodeNewline != UnicodeNewline.LF)
-                        editor.ReplaceText(line.EndOffset + 1, line.DelimiterLength, "\n");
+                        eolMarker = "\n";
                     break;
 
                 case EndOfLine.CRLF:
                     if (line.UnicodeNewline != UnicodeNewline.CRLF)
-                        editor.ReplaceText(line.EndOffset + 1, line.DelimiterLength, "\r\n");
+                        eolMarker = "\r\n";
                     break;
             }
+            if (eolMarker == null)
+                return;
+            
+            TextChange change = ChangeFromBounds(line.EndOffset, line.EndOffsetIncludingDelimiter, eolMarker);
+            changes.Add(change);
         }
 
-        private static void HandleTrimTrailingWhitespace(TextEditor editor, IDocumentLine line, FileConfiguration config)
+        static TextChange ChangeFromBounds(int offset, int endOffset, string text)
         {
-            if (config.TrimTrailingWhitespace == null)
-                return;
+            TextSpan span = new TextSpan(offset, endOffset - offset);
+            TextChange change = new TextChange(span, text);
+            return change;
+        }
 
-            if (!config.TrimTrailingWhitespace.Value)
-                return;
-
-            for (int i = line.EndOffset; i >= line.Offset; --i)
-            {
-                char c = editor.GetCharAt(i);
-
-                if (!char.IsWhiteSpace(c))
-                {
-                    editor.RemoveText(i + 1, line.EndOffset - i);
-                    return;
-                }
-            }
+        static TextChange ChangeAtOffset(int offset, string text)
+        {
+            TextSpan span = new TextSpan(offset, 0);
+            TextChange change = new TextChange(span, text);
+            return change;
         }
     }
 }
