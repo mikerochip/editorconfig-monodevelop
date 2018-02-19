@@ -20,6 +20,9 @@ namespace EditorConfig.Addin
 
         public static FileConfiguration ParseConfig(Document doc)
         {
+            if (doc == null)
+                return null;
+            
             EditorConfigParser parser = new EditorConfigParser();
             IEnumerable<FileConfiguration> configs = parser.Parse(doc.Name);
             FileConfiguration config = configs.First();
@@ -37,10 +40,14 @@ namespace EditorConfig.Addin
         {
             if (doc == null)
                 return;
+            if (config == null)
+                return;
+            if (config.Properties.Count == 0)
+                return;
             
             //Log.Info(Log.Target.Console,
-            //         "LoadSettings doc={0} name=\"{1}\" props={2}",
-            //         doc, doc.Name, config.Properties.Count);
+            //         $"LoadSettings doc={doc} name=\"{doc.Name}\" props={config.Properties.Count}"
+            //);
 
             TextEditor editor = doc.Editor;
             if (editor == null)
@@ -152,12 +159,13 @@ namespace EditorConfig.Addin
         public static void Apply(Document doc, FileConfiguration config)
         {
             //Log.Info(Log.Target.Console,
-            //         "Apply doc={0} name=\"{1}\" props={2}",
-            //         doc, doc.Name, config.Properties.Count);
+            //         $"Apply doc={doc} name=\"{doc.Name}\" props={config.Properties.Count}"
+            //);
 
             if (doc == null)
                 return;
-            
+            if (config == null)
+                return;
             if (config.Properties.Count == 0)
                 return;
 
