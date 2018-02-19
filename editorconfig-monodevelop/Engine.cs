@@ -15,21 +15,6 @@ namespace EditorConfig.Addin
 {
     public static class Engine
     {
-        public static bool IsFile(Document doc)
-        {
-            if (doc == null)
-                return false;
-
-            if (doc.Editor == null)
-                return false;
-
-            if (!doc.IsFile)
-                return false;
-
-            return true;
-        }
-
-
         public static FileConfiguration ParseConfig(Document doc)
         {
             EditorConfigParser parser = new EditorConfigParser();
