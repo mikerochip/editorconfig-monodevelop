@@ -21,11 +21,12 @@ namespace EditorConfig.Addin
 
         static void OnCommandActivating(object sender, CommandActivationEventArgs e)
         {
-            //Log.Info(Log.Target.Console,
-            //         "OnCommandActivating source={0} target={1} " +
-            //         "commandId={2} enabled={3} text=\"{4}\"",
-            //         e.Source, e.Target,
-            //         e.CommandId, e.CommandInfo.Enabled, e.CommandInfo.Text);
+            Log.Info(Log.Target.Console,
+                     $"OnCommandActivating " +
+                     $"sender={sender} source={e.Source} target={e.Target} " +
+                     $"dataItem={e.DataItem} commandId={e.CommandId} " +
+                     $"enabled={e.CommandInfo.Enabled} text=\"{e.CommandInfo.Text}\""
+            );
 
             // mschweitzer HACK: This is super not ideal, but was the best option
             // for me. Other options were:
@@ -63,11 +64,12 @@ namespace EditorConfig.Addin
 
         static void OnCommandActivated(object sender, CommandActivationEventArgs e)
         {
-            //Log.Info(Log.Target.Console,
-            //         "OnCommandActivated source={0} target={1} " +
-            //         "commandId={2} enabled={3} text=\"{4}\"",
-            //         e.Source, e.Target,
-            //         e.CommandId, e.CommandInfo.Enabled, e.CommandInfo.Text);
+            Log.Info(Log.Target.Console,
+                     $"OnCommandActivated " +
+                     $"sender={sender} source={e.Source} target={e.Target} " +
+                     $"dataItem={e.DataItem} commandId={e.CommandId} " +
+                     $"enabled={e.CommandInfo.Enabled} text=\"{e.CommandInfo.Text}\""
+            );
 
             // see mschweitzer HACK in OnCommandActivating
             switch (e.CommandId)
