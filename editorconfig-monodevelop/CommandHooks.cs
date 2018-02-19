@@ -51,7 +51,9 @@ namespace EditorConfig.Addin
 
         static void OnPreFileSave(CommandInfo info)
         {
-            Engine.Apply(IdeApp.Workbench.ActiveDocument);
+            Document doc = IdeApp.Workbench.ActiveDocument;
+
+            Engine.Apply(doc);
         }
 
         static void OnPreFileSaveAll(CommandInfo info)
@@ -70,13 +72,21 @@ namespace EditorConfig.Addin
             // see mschweitzer HACK in OnCommandActivating
             switch (e.CommandId)
             {
+                case "MonoDevelop.Ide.Commands.FileCommands.NewFile":
+                    OnPostNewFile(e.CommandInfo);
+                    break;
+
+                case "MonoDevelop.Ide.Commands.FileCommands.NewProject":
+                    OnPostNewProject(e.CommandInfo);
+                    break;
+
                 case "MonoDevelop.Ide.Commands.FileCommands.Save":
                 case "MonoDevelop.Ide.Commands.FileCommands.SaveAs":
                     OnPostFileSave(e.CommandInfo);
                     break;
 
                 case "MonoDevelop.Ide.Commands.FileCommands.SaveAll":
-                    //OnPostFileSaveAll(e.CommandInfo);
+                    OnPostFileSaveAll(e.CommandInfo);
                     break;
 
                 case "MonoDevelop.Ide.Commands.FileCommands.OpenFile":
@@ -91,8 +101,32 @@ namespace EditorConfig.Addin
             }
         }
 
+        static void OnPostNewFile(CommandInfo info)
+        {
+            bool canceled = info.AsyncUpdateCancellationToken.WaitHandle.WaitOne(5000);
+            if (canceled)
+                return;
+            
+            Document doc = IdeApp.Workbench.ActiveDocument;
+
+            Engine.LoadSettings(doc);
+        }
+
+        static void OnPostNewProject(CommandInfo info)
+        {
+            bool canceled = info.AsyncUpdateCancellationToken.WaitHandle.WaitOne(5000);
+            if (canceled)
+                return;
+            
+            Engine.LoadSettings(IdeApp.Workbench.Documents);
+        }
+
         static void OnPostFileSave(CommandInfo info)
         {
+            bool canceled = info.AsyncUpdateCancellationToken.WaitHandle.WaitOne(5000);
+            if (canceled)
+                return;
+            
             Document doc = IdeApp.Workbench.ActiveDocument;
 
             Engine.LoadSettings(doc);
@@ -100,11 +134,25 @@ namespace EditorConfig.Addin
 
         static void OnPostFileSaveAll(CommandInfo info)
         {
+            bool canceled = info.AsyncUpdateCancellationToken.WaitHandle.WaitOne(5000);
+            if (canceled)
+                return;
+            
             Engine.LoadSettings(IdeApp.Workbench.Documents);
         }
 
         static void OnPostFileOpen(CommandInfo info)
         {
+            while (!info.AsyncUpdateCancellationToken.IsCancellationRequested)
+            {
+                bool canceled = info.AsyncUpdateCancellationToken.WaitHandle.WaitOne(1000);
+                if (canceled)
+                    return;
+            }
+            
+            // mschweiter MOJO: When there are no open files or projects in
+            // MonoDevelop, ActiveDocument is null and the first document is
+            // the newly opened file.
             Document doc = IdeApp.Workbench.ActiveDocument;
             if (doc == null && IdeApp.Workbench.Documents.Count > 0)
                 doc = IdeApp.Workbench.Documents[0];
