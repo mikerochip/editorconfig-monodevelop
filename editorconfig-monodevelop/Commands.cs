@@ -7,9 +7,9 @@ namespace EditorConfig.Addin
 {
     public enum Commands
     {
-        LoadSettings,
+        Reload,
         Apply,
-        ToggleApplyEol,
+        LetEolChange,
     }
 
     class StartupHandler : CommandHandler
@@ -50,20 +50,22 @@ namespace EditorConfig.Addin
         {
             Document doc = IdeApp.Workbench.ActiveDocument;
 
-            Engine.Apply(doc);
+            FileConfiguration config = Engine.ParseConfig(doc);
+            Engine.LoadSettings(doc, config);
+            Engine.Apply(doc, config);
         }
     }
 
-    class ToggleApplyEolHandler : CommandHandler
+    class LetEolChangeHandler : CommandHandler
     {
         protected override void Update(CommandInfo info)
         {
-            info.Checked = Engine.ShouldApplyEol;
+            info.Checked = Engine.LetEolApply;
         }
 
         protected override void Run()
         {
-            Engine.ShouldApplyEol = !Engine.ShouldApplyEol;
+            Engine.LetEolApply = !Engine.LetEolApply;
         }
     }
 }

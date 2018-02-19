@@ -15,7 +15,7 @@ namespace EditorConfig.Addin
 {
     public static class Engine
     {
-        public static bool ShouldApplyEol { get; set; } = true;
+        public static bool LetEolApply { get; set; } = true;
 
 
         public static FileConfiguration ParseConfig(Document doc)
@@ -29,11 +29,15 @@ namespace EditorConfig.Addin
 
         public static void LoadSettings(Document doc)
         {
+            FileConfiguration config = ParseConfig(doc);
+            LoadSettings(doc, config);
+        }
+
+        public static void LoadSettings(Document doc, FileConfiguration config)
+        {
             if (doc == null)
                 return;
             
-            FileConfiguration config = ParseConfig(doc);
-
             //Log.Info(Log.Target.Console,
             //         "LoadSettings doc={0} name=\"{1}\" props={2}",
             //         doc, doc.Name, config.Properties.Count);
@@ -164,7 +168,7 @@ namespace EditorConfig.Addin
             Apply_Charset(editor, config);
             Apply_TrimTrailingWhitespace(editor, config);
             Apply_InsertFinalNewline(editor, config);
-            if (ShouldApplyEol)
+            if (LetEolApply)
                 Apply_EndOfLine(editor, config);
         }
 
