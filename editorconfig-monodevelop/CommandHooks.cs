@@ -13,7 +13,8 @@ namespace EditorConfig.Addin
         public static void Initialize()
         {
             // mschweitzer NOTE: I really don't see a better way of hooking into
-            // file operations
+            // file operations. Reimplementing them (the only other alternative
+            // AFAIK) is not a good option.
             IdeApp.CommandService.CommandActivating += OnCommandActivating;
             IdeApp.CommandService.CommandActivated += OnCommandActivated;
         }
