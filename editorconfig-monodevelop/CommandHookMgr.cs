@@ -17,15 +17,17 @@ namespace EditorConfig.Addin
             {
                 get;
                 private set;
-            } = ImmutableList<Document>.Empty;
+            }
+            = ImmutableList<Document>.Empty;
 
-            public Document ActiveDocument
+            public List<bool> DirtyStates
             {
                 get;
                 private set;
             }
+            = new List<bool>();
 
-            public bool IsActiveDocumentDirty
+            public Document ActiveDocument
             {
                 get;
                 private set;
@@ -34,14 +36,14 @@ namespace EditorConfig.Addin
             public void Save()
             {
                 Documents = IdeApp.Workbench.Documents.ToImmutableList();
+                DirtyStates = (from doc in Documents select doc.IsDirty).ToList();
                 ActiveDocument = IdeApp.Workbench.ActiveDocument;
-                if (ActiveDocument != null)
-                    IsActiveDocumentDirty = ActiveDocument.IsDirty;
             }
 
             public void Reset()
             {
                 Documents = ImmutableList<Document>.Empty;
+                DirtyStates = new List<bool>();
                 ActiveDocument = null;
             }
 
@@ -57,6 +59,9 @@ namespace EditorConfig.Addin
                 if (Documents.SequenceEqual(state.Documents))
                     return false;
 
+                if (DirtyStates.SequenceEqual(state.DirtyStates))
+                    return false;
+
                 if (ActiveDocument == null && state.ActiveDocument != null)
                     return false;
 
@@ -64,9 +69,6 @@ namespace EditorConfig.Addin
                     return false;
 
                 if (!ActiveDocument.Equals(state.ActiveDocument))
-                    return false;
-
-                if (IsActiveDocumentDirty != state.IsActiveDocumentDirty)
                     return false;
 
                 return true;
@@ -79,6 +81,7 @@ namespace EditorConfig.Addin
                 {
                     int hash = 17;
                     hash = hash * 29 + Documents.GetHashCode();
+                    hash = hash * 29 + DirtyStates.GetHashCode();
                     if (ActiveDocument != null)
                         hash = hash * 29 + ActiveDocument.GetHashCode();
                     return hash;
