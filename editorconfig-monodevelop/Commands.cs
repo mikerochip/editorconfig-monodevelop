@@ -16,7 +16,7 @@ namespace EditorConfig.Addin
     {
         protected override void Run()
         {
-            CommandHooks.Initialize();
+            CommandHookMgr.Initialize();
         }
     }
 
@@ -50,9 +50,7 @@ namespace EditorConfig.Addin
         {
             Document doc = IdeApp.Workbench.ActiveDocument;
 
-            FileConfiguration config = Engine.ParseConfig(doc);
-            Engine.LoadSettings(doc, config);
-            Engine.Apply(doc, config);
+            Engine.LoadSettingsAndApply(doc);
         }
     }
 

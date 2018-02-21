@@ -398,5 +398,19 @@ namespace EditorConfig.Addin
             TextChange change = new TextChange(span, text);
             return change;
         }
+
+
+        public static void LoadSettingsAndApply(Document doc)
+        {
+            FileConfiguration config = ParseConfig(doc);
+            LoadSettings(doc, config);
+            Apply(doc, config);
+        }
+
+        public static void LoadSettingsAndApply(IEnumerable<Document> docs)
+        {
+            foreach (Document doc in docs)
+                LoadSettingsAndApply(doc);
+        }
     }
 }
