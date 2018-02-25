@@ -9,13 +9,13 @@
     
     <Extension path = "/MonoDevelop/Ide/Commands/Edit">
         <Command id = "EditorConfig.Addin.Commands.Reload"
-                 _label = "Reload for Current File"
-                 _description = "Change text editor settings for the current file, which normally happens on file open."
+                 _label = "Reload Editor Settings for Current File"
+                 _description = "Change text editor settings for the current file, which normally happens on file open and rename."
                  defaultHandler = "EditorConfig.Addin.ReloadHandler" />
         
         <Command id = "EditorConfig.Addin.Commands.Apply"
-                 _label = "Reload and Apply to Current File"
-                 _description = "Change the current file's content, which normally happens on file save."
+                 _label = "Reload Editor Settings and Apply Changes to Current File"
+                 _description = "Reload config then change the current file's content, which normally happens on file save."
                  defaultHandler = "EditorConfig.Addin.ApplyHandler" />
 
         <Command id = "EditorConfig.Addin.Commands.LetEolChange"
