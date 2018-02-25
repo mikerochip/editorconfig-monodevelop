@@ -9,9 +9,9 @@ using MonoDevelop.Projects;
 
 namespace EditorConfig.Addin
 {
-    class CommandHookMgr
+    class IdeEventMgr
     {
-        static CommandHookMgr instance;
+        static IdeEventMgr instance;
 
 
         public static void Initialize()
@@ -19,11 +19,11 @@ namespace EditorConfig.Addin
             if (instance != null)
                 return;
 
-            instance = new CommandHookMgr();
+            instance = new IdeEventMgr();
             instance.InitializeImpl();
         }
 
-        public static CommandHookMgr Get()
+        public static IdeEventMgr Get()
         {
             return instance;
         }
@@ -43,10 +43,12 @@ namespace EditorConfig.Addin
                      $"e.Document.Name={e.Document.Name} "
                     );
 
-            Engine.LoadSettings(e.Document);
+            Document document = e.Document;
 
-            e.Document.Saved += OnDocumentSaved;
-            e.Document.Closed += OnDocumentClosed;
+            Engine.LoadSettings(document);
+
+            document.Saved += OnDocumentSaved;
+            document.Closed += OnDocumentClosed;
         }
 
         async void OnDocumentSaved(object sender, EventArgs e)

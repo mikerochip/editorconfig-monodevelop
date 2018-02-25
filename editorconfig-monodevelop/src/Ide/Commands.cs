@@ -16,7 +16,7 @@ namespace EditorConfig.Addin
     {
         protected override void Run()
         {
-            CommandHookMgr.Initialize();
+            IdeEventMgr.Initialize();
         }
     }
 
