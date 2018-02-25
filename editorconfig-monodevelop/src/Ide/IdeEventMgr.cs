@@ -32,37 +32,39 @@ namespace EditorConfig.Addin
         void InitializeImpl()
         {
             IdeApp.Workbench.DocumentOpened += OnDocumentOpened;
+            IdeApp.Workbench.DocumentClosed += OnDocumentClosed;
             IdeApp.Workspace.FileRenamedInProject += OnFileRenamedInProject;
         }
 
         void OnDocumentOpened(object sender, DocumentEventArgs e)
         {
-            Log.Info(Log.Target.Console,
-                     $"OnDocumentOpened " +
-                     $"sender={sender} " +
-                     $"e.Document.Name={e.Document.Name} "
-                    );
-
             Document document = e.Document;
+            if (document == null)
+                return;
 
             Engine.LoadSettings(document);
 
             document.Saved += OnDocumentSaved;
-            document.Closed += OnDocumentClosed;
         }
 
-        async void OnDocumentSaved(object sender, EventArgs e)
+        void OnDocumentClosed(object sender, DocumentEventArgs e)
         {
-            Log.Info(Log.Target.Console,
-                     $"OnDocumentSaved " +
-                     $"sender={sender} "
-                    );
-
-            Document document = sender as Document;
+            Document document = e.Document;
             if (document == null)
                 return;
 
             document.Saved -= OnDocumentSaved;
+        }
+
+        async void OnDocumentSaved(object sender, EventArgs e)
+        {
+            Document document = sender as Document;
+            if (document == null)
+                return;
+
+            // remove save hook so we can apply EditorConfigs and re-save
+            document.Saved -= OnDocumentSaved;
+
             Engine.LoadSettingsAndApply(document);
             try
             {
@@ -81,40 +83,27 @@ namespace EditorConfig.Addin
                 Log.Info(Log.Target.StatusBar, message);
                 Log.Info(Log.Target.Console, fullMessage);
             }
+
+            // restore save hook
             document.Saved += OnDocumentSaved;
         }
 
-        void OnDocumentClosed(object sender, EventArgs e)
+        async void OnFileRenamedInProject(object sender, ProjectFileRenamedEventArgs e)
         {
-            Log.Info(Log.Target.Console,
-                     $"OnDocumentClosed " +
-                     $"sender={sender} "
-                    );
-
-            Document document = sender as Document;
-            if (document == null)
-                return;
-            
-            document.Saved -= OnDocumentSaved;
-            document.Closed -= OnDocumentClosed;
-        }
-
-        void OnFileRenamedInProject(object sender, ProjectFileRenamedEventArgs e)
-        {
-            Log.Info(Log.Target.Console,
-                     $"OnFileRenamedInProject " +
-                     $"sender={sender} " +
-                     $"e={e}"
-                    );
+            // extensions may have changed so reload EditorConfigs
             foreach (ProjectFileRenamedEventInfo info in e)
             {
-                Log.Info(Log.Target.Console,
-                         $"OnFileRenamedInProject " +
-                         $"info.OldName={info.OldName} " +
-                         $"info.NewName={info.NewName} " +
-                         $"info.ProjectFile={info.ProjectFile} " +
-                         $"info.ProjectFile.Name={info.ProjectFile.Name}"
-                        );
+                Document document = IdeApp.Workbench.GetDocument(info.OldName);
+                if (document == null)
+                    continue;
+
+                await document.Reload();
+
+                document = IdeApp.Workbench.GetDocument(info.NewName);
+                if (document == null)
+                    continue;
+
+                Engine.LoadSettings(document);
             }
         }
     }
