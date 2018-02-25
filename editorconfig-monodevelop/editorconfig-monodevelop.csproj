@@ -6,4 +6,10 @@
     <PackageReference Include="MonoDevelop.Addins" Version="0.4.1" />
     <PackageReference Include="editorconfig" Version="0.12.1" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="src\" />
+    <Folder Include="src\Properties\" />
+    <Folder Include="src\Commands\" />
+    <Folder Include="src\Core\" />
+  </ItemGroup>
 </Project>

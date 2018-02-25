@@ -20,7 +20,7 @@ namespace EditorConfig.Addin
         }
     }
 
-    class LoadSettingsHandler : CommandHandler
+    class ReloadHandler : CommandHandler
     {
         protected override void Update(CommandInfo info)
         {

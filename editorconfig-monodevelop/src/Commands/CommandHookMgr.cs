@@ -1,95 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using MonoDevelop.Components.Commands;
 using MonoDevelop.Ide;
 using MonoDevelop.Ide.Commands;
 using MonoDevelop.Ide.Gui;
+using MonoDevelop.Projects;
 
 namespace EditorConfig.Addin
 {
     class CommandHookMgr
     {
-        class WorkbenchState
-        {
-            public ImmutableList<Document> Documents
-            {
-                get;
-                private set;
-            }
-            = ImmutableList<Document>.Empty;
-
-            public List<bool> DirtyStates
-            {
-                get;
-                private set;
-            }
-            = new List<bool>();
-
-            public Document ActiveDocument
-            {
-                get;
-                private set;
-            }
-
-            public void Save()
-            {
-                Documents = IdeApp.Workbench.Documents.ToImmutableList();
-                DirtyStates = (from doc in Documents select doc.IsDirty).ToList();
-                ActiveDocument = IdeApp.Workbench.ActiveDocument;
-            }
-
-            public void Reset()
-            {
-                Documents = ImmutableList<Document>.Empty;
-                DirtyStates = new List<bool>();
-                ActiveDocument = null;
-            }
-
-            public override bool Equals(object obj)
-            {
-                if (ReferenceEquals(this, obj))
-                    return true;
-
-                WorkbenchState state = obj as WorkbenchState;
-                if (state == null)
-                    return false;
-
-                if (Documents.SequenceEqual(state.Documents))
-                    return false;
-
-                if (DirtyStates.SequenceEqual(state.DirtyStates))
-                    return false;
-
-                if (ActiveDocument == null && state.ActiveDocument != null)
-                    return false;
-
-                if (ActiveDocument != null && state.ActiveDocument == null)
-                    return false;
-
-                if (!ActiveDocument.Equals(state.ActiveDocument))
-                    return false;
-
-                return true;
-            }
-
-            // see https://stackoverflow.com/questions/263400/what-is-the-best-algorithm-for-an-overridden-system-object-gethashcode
-            public override int GetHashCode()
-            {
-                unchecked
-                {
-                    int hash = 17;
-                    hash = hash * 29 + Documents.GetHashCode();
-                    hash = hash * 29 + DirtyStates.GetHashCode();
-                    if (ActiveDocument != null)
-                        hash = hash * 29 + ActiveDocument.GetHashCode();
-                    return hash;
-                }
-            }
-        }
-
-
         static CommandHookMgr instance;
         WorkbenchState preState = new WorkbenchState();
         WorkbenchState postState = new WorkbenchState();
@@ -111,11 +31,73 @@ namespace EditorConfig.Addin
 
         void InitializeImpl()
         {
+            IdeApp.Workbench.DocumentOpened += (object sender, DocumentEventArgs e) =>
+            {
+                Log.Info(Log.Target.Console,
+                         $"Workbench.DocumentOpened " +
+                         $"sender={sender} " +
+                         $"e.Document.Name={e.Document.Name}"
+                        );
+
+                Engine.LoadSettings(e.Document);
+
+                e.Document.Saved += OnDocumentSaved;
+                e.Document.Closed += OnDocumentClosed;
+            };
+            IdeApp.Workspace.FileRenamedInProject += (object sender, ProjectFileRenamedEventArgs e) => 
+            {
+                Log.Info(Log.Target.Console,
+                         $"Workspace.FileRenamedInProject " +
+                         $"sender={sender} " +
+                         $"e={e}"
+                        );
+            };
+
             // mschweitzer NOTE: I really don't see a better way of hooking into
             // file operations. Reimplementing them (the only other alternative
             // AFAIK) is not a good option.
             IdeApp.CommandService.CommandActivating += instance.OnCommandActivating;
             IdeApp.CommandService.CommandActivated += instance.OnCommandActivated;
+        }
+
+        void OnDocumentOpened(object sender, DocumentEventArgs e)
+        {
+            Log.Info(Log.Target.Console,
+                     $"OnDocumentOpened " +
+                     $"sender={sender} " +
+                     $"e.Document.Name={e.Document.Name}"
+            );
+
+            Engine.LoadSettings(e.Document);
+
+            e.Document.Saved += OnDocumentSaved;
+            e.Document.Closed += OnDocumentClosed;
+        }
+
+        void OnDocumentSaved(object sender, EventArgs e)
+        {
+            Log.Info(Log.Target.Console,
+                     $"OnDocumentSaved " +
+                     $"sender={sender} " +
+                     $"e={e}"
+            );
+
+            Document document = sender as Document;
+            if (document == null)
+                return;
+        }
+
+        void OnDocumentClosed(object sender, EventArgs e)
+        {
+            Log.Info(Log.Target.Console,
+                     $"OnDocumentClosed " +
+                     $"sender={sender} " +
+                     $"e={e}"
+            );
+
+            Document document = sender as Document;
+            if (document == null)
+                return;
         }
 
         void OnCommandActivating(object sender, CommandActivationEventArgs e)
@@ -141,16 +123,17 @@ namespace EditorConfig.Addin
 
             postState.Save();
 
-            if (preState.Equals(postState))
-            {
-                preState.Reset();
-                postState.Reset();
-                return;
-            }
+            //HandleActivatedCommand(sender, e);
 
+            preState.Reset();
+            postState.Reset();
+        }
+
+        void HandleActivatedCommand(object sender, CommandActivationEventArgs e)
+        {
             // mschweitzer HACK: This is super not ideal, but was the best option
             // for me. Other options were:
-            // 
+            //
             // 1. Attempting to use the actual FileCommands enum values, which
             //    would've required a lot of gymnastics
             // 2. Making custom commands in the xml, which would incur a lot
@@ -168,11 +151,17 @@ namespace EditorConfig.Addin
                     break;
 
                 case "MonoDevelop.Ide.Commands.FileCommands.Save":
-                case "MonoDevelop.Ide.Commands.FileCommands.SaveAs":
+                    // the states are equivalent in this case
                     OnPostFileSave();
                     break;
 
+                case "MonoDevelop.Ide.Commands.FileCommands.SaveAs":
+                    if (!preState.Equals(postState))
+                        OnPostFileSave();
+                    break;
+
                 case "MonoDevelop.Ide.Commands.FileCommands.SaveAll":
+                    // this checks states within the command
                     OnPostFileSaveAll();
                     break;
 
@@ -186,9 +175,6 @@ namespace EditorConfig.Addin
                     OnPostRecentProjectList();
                     break;
             }
-
-            preState.Reset();
-            postState.Reset();
         }
 
         void OnPostNewFile()
