@@ -9,14 +9,24 @@
     
     <Extension path = "/MonoDevelop/Ide/Commands/Edit">
         <Command id = "EditorConfig.Addin.Commands.Reload"
-                 _label = "Reload Editor Settings for Current File"
-                 _description = "Change text editor settings for the current file, which normally happens on file open and rename."
+                 _label = "Reload .editorconfig"
+                 _description = "Reload .editorconfig, which normally happens on file open and rename."
                  defaultHandler = "EditorConfig.Addin.ReloadHandler" />
         
+        <Command id = "EditorConfig.Addin.Commands.ReloadAll"
+                 _label = "Reload .editorconfig for All Open Files"
+                 _description = "Reload .editorconfig for all open files."
+                 defaultHandler = "EditorConfig.Addin.ReloadAllHandler" />
+        
         <Command id = "EditorConfig.Addin.Commands.Apply"
-                 _label = "Reload Editor Settings and Apply Changes to Current File"
-                 _description = "Reload config then change the current file's content, which normally happens on file save."
+                 _label = "Reload .editorconfig and Apply Changes"
+                 _description = "Reload .editorconfig, then apply changes that normally happen on file save."
                  defaultHandler = "EditorConfig.Addin.ApplyHandler" />
+
+        <Command id = "EditorConfig.Addin.Commands.ApplyAll"
+                 _label = "Reload .editorconfig and Apply Changes to All Open Files"
+                 _description = "Reload .editorconfig and apply changes to all open files."
+                 defaultHandler = "EditorConfig.Addin.ApplyAllHandler" />
 
         <Command id = "EditorConfig.Addin.Commands.LetEolChange"
                  _label = "Let EOL Setting Change Files"
@@ -28,7 +38,9 @@
         <SeparatorItem id = "CutSeparator" />
         <ItemSet id = "EditorConfig" _label = "EditorConfig">
             <CommandItem id = "EditorConfig.Addin.Commands.Reload" />
+            <CommandItem id = "EditorConfig.Addin.Commands.ReloadAll" />
             <CommandItem id = "EditorConfig.Addin.Commands.Apply" />
+            <CommandItem id = "EditorConfig.Addin.Commands.ApplyAll" />
             <CommandItem id = "EditorConfig.Addin.Commands.LetEolChange" />>
         </ItemSet>
     </Extension>

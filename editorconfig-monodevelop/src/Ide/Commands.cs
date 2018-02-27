@@ -1,7 +1,7 @@
-﻿using EditorConfig.Core;
-using MonoDevelop.Components.Commands;
+﻿using MonoDevelop.Components.Commands;
 using MonoDevelop.Ide;
 using MonoDevelop.Ide.Gui;
+using System.Linq;
 
 namespace EditorConfig.Addin
 {
@@ -51,6 +51,36 @@ namespace EditorConfig.Addin
             Document doc = IdeApp.Workbench.ActiveDocument;
 
             Engine.LoadSettingsAndApply(doc);
+        }
+    }
+
+    class ReloadAllHandler : CommandHandler
+    {
+        protected override void Update(CommandInfo info)
+        {
+            info.Enabled = IdeApp.Workbench.Documents.Any(
+                (Document doc) => doc.Editor != null
+            );
+        }
+
+        protected override void Run()
+        {
+            Engine.LoadSettings(IdeApp.Workbench.Documents);
+        }
+    }
+
+    class ApplyAllHandler : CommandHandler
+    {
+        protected override void Update(CommandInfo info)
+        {
+            info.Enabled = IdeApp.Workbench.Documents.Any(
+                (Document doc) => doc.Editor != null
+            );
+        }
+
+        protected override void Run()
+        {
+            Engine.LoadSettingsAndApply(IdeApp.Workbench.Documents);
         }
     }
 
