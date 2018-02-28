@@ -10,7 +10,7 @@ TODO
 
 ### Install from Source
 
-Source builds are only supported using Visual Studio for Mac.
+Source builds are currently only supported using Visual Studio for Mac.
 
 #### Building the Solution
 
