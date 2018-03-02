@@ -1,6 +1,6 @@
 BSD 2-Clause License
 
-Copyright (c) 2018, EditorConfig Team
+Copyright (c) 2018, Michael Schweitzer
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
