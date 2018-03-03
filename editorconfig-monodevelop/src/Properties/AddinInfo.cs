@@ -1,18 +1,19 @@
-﻿using System;
-using Mono.Addins;
+﻿using Mono.Addins;
 using Mono.Addins.Description;
 
 [assembly: Addin(
     "EditorConfig",
     Namespace = "EditorConfig.Addin",
-    Version = "1.0"
+    Version = "1.1"
 )]
 
 [assembly: AddinName("EditorConfig")]
 [assembly: AddinCategory("IDE extensions")]
 [assembly: AddinAuthor("Michael Schweitzer")]
 [assembly: AddinDescription(
-    "Adds support for EditorConfig http://editorconfig.org"
+    "Author: Michael Schweitzer"
+    + "\n"
+    + "\nAdds support for EditorConfig http://editorconfig.org"
     + "\n"
     + "\nSupported features:"
     + "\n"
@@ -31,7 +32,7 @@ using Mono.Addins.Description;
     + "\ntab_width"
     + "\nend_of_line"
     + "\n"
-    + "\nThese modify a file on save:"
+    + "\nThese modify files on save:"
     + "\n"
     + "\ncharset"
     + "\ntrim_trailing_whitespace"
