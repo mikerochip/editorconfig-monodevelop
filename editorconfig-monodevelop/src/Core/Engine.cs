@@ -1,13 +1,11 @@
 ﻿using EditorConfig.Core;
-using System;
+using Microsoft.CodeAnalysis.Text;
+using MonoDevelop.Core.Text;
+using MonoDevelop.Ide.Editor;
+using MonoDevelop.Ide.Gui;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Microsoft.CodeAnalysis.Text;
-using MonoDevelop.Core.Text;
-using MonoDevelop.Ide;
-using MonoDevelop.Ide.Editor;
-using MonoDevelop.Ide.Gui;
 
 using TextChange = Microsoft.CodeAnalysis.Text.TextChange;
 
@@ -22,7 +20,7 @@ namespace EditorConfig.Addin
         {
             if (doc == null)
                 return null;
-            
+
             EditorConfigParser parser = new EditorConfigParser();
             IEnumerable<FileConfiguration> configs = parser.Parse(doc.Name);
             FileConfiguration config = configs.First();
@@ -44,7 +42,7 @@ namespace EditorConfig.Addin
                 return;
             if (config.Properties.Count == 0)
                 return;
-            
+
             //Log.Info(Log.Target.Console,
             //         $"LoadSettings doc={doc} name=\"{doc.Name}\" props={config.Properties.Count}"
             //);
@@ -88,7 +86,7 @@ namespace EditorConfig.Addin
             }
             if (eolMarker == null)
                 return;
-            
+
             options.OverrideDocumentEolMarker = true;
             options.DefaultEolMarker = eolMarker;
         }
@@ -225,7 +223,7 @@ namespace EditorConfig.Addin
 
             foreach (IDocumentLine line in editor.GetLines())
                 Apply_TrimTrailingWhitespace(editor, line, changes);
-            
+
             editor.ApplyTextChanges(changes);
         }
 
@@ -246,7 +244,7 @@ namespace EditorConfig.Addin
             TextChange change = ChangeFromBounds(offset, line.EndOffset, string.Empty);
             if (change.Span.Length == 0)
                 return;
-            
+
             changes.Add(change);
         }
 
@@ -275,7 +273,7 @@ namespace EditorConfig.Addin
             {
                 if (lastLine.Length == 0)
                     return;
-                
+
                 string newlineString = GetBestNewlineString(editor, config, lastLine);
                 TextChange change = ChangeAtOffset(lastLine.EndOffset, newlineString);
                 changes.Add(change);
@@ -380,7 +378,7 @@ namespace EditorConfig.Addin
             }
             if (eolMarker == null)
                 return;
-            
+
             TextChange change = ChangeFromBounds(line.EndOffset, line.EndOffsetIncludingDelimiter, eolMarker);
             changes.Add(change);
         }

@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using MonoDevelop.Components.Commands;
-using MonoDevelop.Ide;
-using MonoDevelop.Ide.Commands;
+﻿using MonoDevelop.Ide;
 using MonoDevelop.Ide.Gui;
 using MonoDevelop.Projects;
+using System;
 
 namespace EditorConfig.Addin
 {
@@ -79,7 +75,7 @@ namespace EditorConfig.Addin
                     $"Failed to save .editorconfig changes to " +
                     $"{document.Name}. " +
                     $"Exception={ex.Message}";
-                
+
                 Log.Info(Log.Target.StatusBar, message);
                 Log.Info(Log.Target.Console, fullMessage);
             }
