@@ -8,7 +8,9 @@ namespace EditorConfig.Addin
     public enum Commands
     {
         Reload,
+        ReloadAll,
         Apply,
+        ApplyAll,
         LetEolChange,
     }
 
