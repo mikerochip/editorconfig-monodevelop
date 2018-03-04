@@ -28,10 +28,10 @@
                  _description = "Reload .editorconfig and apply changes to all open files."
                  defaultHandler = "EditorConfig.Addin.ApplyAllHandler" />
 
-        <Command id = "EditorConfig.Addin.Commands.LetEolChange"
+        <Command id = "EditorConfig.Addin.Commands.LetEolApply"
                  _label = "Let EOL Setting Change Files"
                  _description = "Lets EOL settings change file content instead of just changing text editor settings."
-                 defaultHandler = "EditorConfig.Addin.LetEolChangeHandler" />
+                 defaultHandler = "EditorConfig.Addin.LetEolApplyHandler" />
     </Extension>
     
     <Extension path = "/MonoDevelop/Ide/MainMenu/Edit">
@@ -41,7 +41,7 @@
             <CommandItem id = "EditorConfig.Addin.Commands.ReloadAll" />
             <CommandItem id = "EditorConfig.Addin.Commands.Apply" />
             <CommandItem id = "EditorConfig.Addin.Commands.ApplyAll" />
-            <CommandItem id = "EditorConfig.Addin.Commands.LetEolChange" />>
+            <CommandItem id = "EditorConfig.Addin.Commands.LetEolApply" />>
         </ItemSet>
     </Extension>
 </ExtensionModel>

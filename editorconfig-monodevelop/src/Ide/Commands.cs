@@ -2,6 +2,7 @@
 using MonoDevelop.Ide;
 using MonoDevelop.Ide.Gui;
 using System.Linq;
+using MonoDevelop.Core;
 
 namespace EditorConfig.Addin
 {
@@ -11,7 +12,7 @@ namespace EditorConfig.Addin
         ReloadAll,
         Apply,
         ApplyAll,
-        LetEolChange,
+        LetEolApply,
     }
 
     class StartupHandler : CommandHandler
@@ -19,6 +20,7 @@ namespace EditorConfig.Addin
         protected override void Run()
         {
             IdeEventMgr.Initialize();
+            PropertyMgr.Initialize();
         }
     }
 
@@ -86,7 +88,7 @@ namespace EditorConfig.Addin
         }
     }
 
-    class LetEolChangeHandler : CommandHandler
+    class LetEolApplyHandler : CommandHandler
     {
         protected override void Update(CommandInfo info)
         {
@@ -96,6 +98,7 @@ namespace EditorConfig.Addin
         protected override void Run()
         {
             Engine.LetEolApply = !Engine.LetEolApply;
+            PropertyMgr.Get().SaveLetEolApply();
         }
     }
 }

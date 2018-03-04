@@ -13,7 +13,7 @@ namespace EditorConfig.Addin
 {
     public static class Engine
     {
-        public static bool LetEolApply { get; set; } = true;
+        public static bool LetEolApply { get; set; } = false;
 
 
         public static FileConfiguration ParseConfig(Document doc)
