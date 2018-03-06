@@ -53,6 +53,8 @@ This plugin supports the following EditorConfig [properties][]:
 * `insert_final_newline`
 * `root` (only used by [EditorConfig .NET Core][])
 
+Implementation generally follows this post: https://github.com/editorconfig/editorconfig/issues/248#issuecomment-166980703
+
 ## Bugs and Feature Requests
 
 Adding an issue in the issue tracker is probably fine for now.
