@@ -10,6 +10,7 @@ This is an [EditorConfig][] plugin for [MonoDevelop][] and [Visual Studio for Ma
 2. Click the gallery tab
 3. Search for EditorConfig
 4. Select the extension and click install
+5. Restart the IDE (this is due to a startup limitation)
 
 ### Install from Source
 
@@ -39,6 +40,7 @@ This should have generated an .mpack file e.g. EditorConfig.Addin.EditorConfig_1
 3. Click Install from file...
 4. Navigate to your .mpack and click Open
 5. Click Install
+6. Restart the IDE (this is due to a startup limitation)
 
 ## Supported Properties
 
