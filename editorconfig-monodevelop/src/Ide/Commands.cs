@@ -1,8 +1,9 @@
-﻿using MonoDevelop.Components.Commands;
+﻿using EditorConfig.Core;
+using MonoDevelop.Components.Commands;
 using MonoDevelop.Ide;
 using MonoDevelop.Ide.Gui;
 using System.Linq;
-using MonoDevelop.Core;
+using System.Text;
 
 namespace EditorConfig.Addin
 {
@@ -13,6 +14,7 @@ namespace EditorConfig.Addin
         Apply,
         ApplyAll,
         LetEolApply,
+        ShowSettings,
     }
 
     class StartupHandler : CommandHandler
@@ -98,7 +100,33 @@ namespace EditorConfig.Addin
         protected override void Run()
         {
             Engine.LetEolApply = !Engine.LetEolApply;
-            PropertyMgr.Get().SaveLetEolApply();
+
+            if (PropertyMgr.Get() != null)
+                PropertyMgr.Get().SaveLetEolApply();
+        }
+    }
+
+    class ShowSettingsHandler : CommandHandler
+    {
+        protected override void Update(CommandInfo info)
+        {
+            Document doc = IdeApp.Workbench.ActiveDocument;
+
+            info.Enabled = (doc != null && doc.Editor != null);
+        }
+
+        protected override void Run()
+        {
+            FileConfiguration config = Engine.ParseConfig(IdeApp.Workbench.ActiveDocument);
+
+            StringBuilder builder = new StringBuilder();
+
+            builder.AppendFormat($"EditorConfig settings for {config.FileName}:\n");
+            foreach (var pair in config.Properties)
+                builder.AppendFormat($"\n{pair.Key} = {pair.Value}");
+
+            string text = builder.ToString();
+            MessageService.ShowMessage(text);
         }
     }
 }

@@ -32,6 +32,11 @@
                  _label = "Let EOL Setting Change Files"
                  _description = "Lets EOL settings change file content instead of just changing text editor settings."
                  defaultHandler = "EditorConfig.Addin.LetEolApplyHandler" />
+
+        <Command id = "EditorConfig.Addin.Commands.ShowSettings"
+                 _label = "Show Settings for Current File"
+                 _description = "Show a Message Box with the currently active settings."
+                 defaultHandler = "EditorConfig.Addin.ShowSettingsHandler" />
     </Extension>
     
     <Extension path = "/MonoDevelop/Ide/MainMenu/Edit">
@@ -41,7 +46,10 @@
             <CommandItem id = "EditorConfig.Addin.Commands.ReloadAll" />
             <CommandItem id = "EditorConfig.Addin.Commands.Apply" />
             <CommandItem id = "EditorConfig.Addin.Commands.ApplyAll" />
-            <CommandItem id = "EditorConfig.Addin.Commands.LetEolApply" />>
+            <SeparatorItem id = "CutSeparator" />
+            <CommandItem id = "EditorConfig.Addin.Commands.LetEolApply" />
+            <SeparatorItem id = "CutSeparator" />
+            <CommandItem id = "EditorConfig.Addin.Commands.ShowSettings" />
         </ItemSet>
     </Extension>
 </ExtensionModel>
