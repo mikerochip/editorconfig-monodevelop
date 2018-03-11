@@ -53,7 +53,21 @@ This plugin supports the following EditorConfig [properties][]:
 * `insert_final_newline`
 * `root` (only used by [EditorConfig .NET Core][])
 
-Implementation generally follows this post: https://github.com/editorconfig/editorconfig/issues/248#issuecomment-166980703
+These change editor settings on file open:
+
+* `indent_style`
+* `indent_size`
+* `tab_width`
+* `end_of_line`
+
+These change editor settings on file open:
+
+* `charset`
+* `trim_trailing_whitespace`
+* `insert_final_newline`
+* `end_of_line` (can enable via an option)
+
+For reference: https://github.com/editorconfig/editorconfig/issues/248#issuecomment-166980703
 
 ## Bugs and Feature Requests
 
