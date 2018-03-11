@@ -60,7 +60,7 @@ These change editor settings on file open:
 * `tab_width`
 * `end_of_line`
 
-These change editor settings on file open:
+These modify files on save:
 
 * `charset`
 * `trim_trailing_whitespace`
