@@ -1,15 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="editorconfig" Version="0.12.1" />
-    <PackageReference Include="MonoDevelop.Addins" Version="0.4.4" />
+    <PackageReference Include="editorconfig" Version="0.12.2" />
+    <PackageReference Include="MonoDevelop.Addins" Version="0.4.7" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="src\" />
-    <Folder Include="src\Properties\" />
-    <Folder Include="src\Ide\" />
-    <Folder Include="src\Core\" />
   </ItemGroup>
 </Project>

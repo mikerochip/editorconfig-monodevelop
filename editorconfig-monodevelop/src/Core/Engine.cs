@@ -22,8 +22,7 @@ namespace EditorConfig.Addin
                 return null;
 
             EditorConfigParser parser = new EditorConfigParser();
-            IEnumerable<FileConfiguration> configs = parser.Parse(doc.Name);
-            FileConfiguration config = configs.First();
+            FileConfiguration config = parser.Parse(doc.Name);
             return config;
         }
 
