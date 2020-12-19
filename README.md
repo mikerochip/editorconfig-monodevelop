@@ -29,7 +29,7 @@ You should end up with some assemblies in your bin/Release folder. We'll need to
 
 1. Find vstool in your Visual Studio for Mac app folder e.g. /Applications/Visual Studio.app/Contents/MacOS/
 2. Run vstool on editorconfig-monodevelop.dll from the previous steps e.g.
-> ./vstool setup pack /path/to/editorconfig-monodevelop/editorconfig-monodevelop/bin/Release/net461/editorconfig-monodevelop.dll
+> ./vstool setup pack /path/to/editorconfig-monodevelop/editorconfig-monodevelop/bin/Release/net472/editorconfig-monodevelop.dll
 
 This should have generated an .mpack file e.g. EditorConfig.Addin.EditorConfig_1.0.mpack, which you can put wherever you want.
 
