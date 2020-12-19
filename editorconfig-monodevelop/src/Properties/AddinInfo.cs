@@ -4,7 +4,7 @@ using Mono.Addins.Description;
 [assembly: Addin(
     "EditorConfig",
     Namespace = "EditorConfig.Addin",
-    Version = "1.2"
+    Version = "1.3"
 )]
 
 [assembly: AddinName("EditorConfig")]

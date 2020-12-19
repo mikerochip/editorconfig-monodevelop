@@ -4,7 +4,6 @@ using MonoDevelop.Core.Text;
 using MonoDevelop.Ide.Editor;
 using MonoDevelop.Ide.Gui;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 using TextChange = Microsoft.CodeAnalysis.Text.TextChange;
@@ -97,11 +96,11 @@ namespace EditorConfig.Addin
 
             switch (config.IndentStyle.Value)
             {
-                case EditorConfig.Core.IndentStyle.Tab:
+                case Core.IndentStyle.Tab:
                     options.TabsToSpaces = false;
                     break;
 
-                case EditorConfig.Core.IndentStyle.Space:
+                case Core.IndentStyle.Space:
                     options.TabsToSpaces = true;
                     break;
             }
