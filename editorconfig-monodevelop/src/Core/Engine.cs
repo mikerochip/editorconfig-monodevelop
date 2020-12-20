@@ -1,5 +1,6 @@
 ﻿using EditorConfig.Core;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Microsoft.VisualStudio.Text.Editor;
 using MonoDevelop.Core.Text;
@@ -8,6 +9,7 @@ using MonoDevelop.Ide.Gui;
 using System.Collections.Generic;
 using System.Text;
 
+using ITextDocument = Microsoft.VisualStudio.Text.ITextDocument;
 using TextChange = Microsoft.CodeAnalysis.Text.TextChange;
 
 namespace EditorConfig.Addin
@@ -153,44 +155,42 @@ namespace EditorConfig.Addin
             if (config.Properties.Count == 0)
                 return;
 
-            TextEditor editor = doc.Editor;
-            if (editor == null)
-                return;
-
-            Apply_Charset(editor, config);
-            Apply_TrimTrailingWhitespace(editor, config);
-            Apply_InsertFinalNewline(editor, config);
+            Apply_Charset(doc, config);
+            Apply_TrimTrailingWhitespace(doc.Editor, config);
+            Apply_InsertFinalNewline(doc.Editor, config);
             if (LetEolApply)
-                Apply_EndOfLine(editor, config);
+                Apply_EndOfLine(doc.Editor, config);
         }
 
         static void Apply_Charset(
-            TextEditor editor,
+            Document doc,
             FileConfiguration config)
         {
             if (config.Charset == null)
                 return;
 
+            ITextDocument textDoc = doc.GetContent<ITextDocument>();
+
             switch (config.Charset.Value)
             {
                 case Charset.Latin1:
-                    editor.Encoding = Encoding.GetEncoding("ISO-8859-1");
+                    textDoc.Encoding = Encoding.GetEncoding("ISO-8859-1");
                     break;
 
                 case Charset.UTF16BE:
-                    editor.Encoding = Encoding.BigEndianUnicode;
+                    textDoc.Encoding = Encoding.BigEndianUnicode;
                     break;
 
                 case Charset.UTF16LE:
-                    editor.Encoding = Encoding.Unicode;
+                    textDoc.Encoding = Encoding.Unicode;
                     break;
 
                 case Charset.UTF8:
-                    editor.Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+                    textDoc.Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
                     break;
 
                 case Charset.UTF8BOM:
-                    editor.Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
+                    textDoc.Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
                     break;
             }
         }
@@ -332,14 +332,13 @@ namespace EditorConfig.Addin
             for (int i = 1; i < editor.LineCount; ++i)
             {
                 IDocumentLine line = editor.GetLine(i);
-                Apply_EndOfLine(editor, config, line, changes);
+                Apply_EndOfLine(config, line, changes);
             }
 
             editor.ApplyTextChanges(changes);
         }
 
         static void Apply_EndOfLine(
-            TextEditor editor,
             FileConfiguration config,
             IDocumentLine line,
             List<TextChange> changes)
