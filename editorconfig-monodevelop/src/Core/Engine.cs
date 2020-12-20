@@ -43,7 +43,7 @@ namespace EditorConfig.Addin
             if (config.Properties.Count == 0)
                 return;
 
-            if (!(doc.GetContent<ITextView>() is ITextView view))
+            if (doc.GetContent<ITextView>() is not ITextView view)
                 return;
 
             LoadSettings_EndOfLine(view.Options, config);
