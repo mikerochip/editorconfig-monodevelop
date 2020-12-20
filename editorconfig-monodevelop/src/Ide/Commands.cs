@@ -1,4 +1,5 @@
 ﻿using EditorConfig.Core;
+using Microsoft.VisualStudio.Text.Editor;
 using MonoDevelop.Components.Commands;
 using MonoDevelop.Ide;
 using MonoDevelop.Ide.Gui;
@@ -32,7 +33,7 @@ namespace EditorConfig.Addin
         {
             Document doc = IdeApp.Workbench.ActiveDocument;
 
-            info.Enabled = (doc != null && doc.Editor != null);
+            info.Enabled = doc?.GetContent<ITextView>() != null;
         }
 
         protected override void Run()
@@ -49,7 +50,7 @@ namespace EditorConfig.Addin
         {
             Document doc = IdeApp.Workbench.ActiveDocument;
 
-            info.Enabled = (doc != null && doc.Editor != null);
+            info.Enabled = doc?.GetContent<ITextView>() != null;
         }
 
         protected override void Run()
@@ -65,7 +66,7 @@ namespace EditorConfig.Addin
         protected override void Update(CommandInfo info)
         {
             info.Enabled = IdeApp.Workbench.Documents.Any(
-                (Document doc) => doc.Editor != null
+                doc => doc.GetContent<ITextView>() != null
             );
         }
 
@@ -80,7 +81,7 @@ namespace EditorConfig.Addin
         protected override void Update(CommandInfo info)
         {
             info.Enabled = IdeApp.Workbench.Documents.Any(
-                (Document doc) => doc.Editor != null
+                doc => doc.GetContent<ITextView>() != null
             );
         }
 
@@ -112,7 +113,7 @@ namespace EditorConfig.Addin
         {
             Document doc = IdeApp.Workbench.ActiveDocument;
 
-            info.Enabled = (doc != null && doc.Editor != null);
+            info.Enabled = doc?.GetContent<ITextView>() != null;
         }
 
         protected override void Run()

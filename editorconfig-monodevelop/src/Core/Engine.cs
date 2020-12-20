@@ -1,5 +1,7 @@
 ﻿using EditorConfig.Core;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
+using Microsoft.VisualStudio.Text.Editor;
 using MonoDevelop.Core.Text;
 using MonoDevelop.Ide.Editor;
 using MonoDevelop.Ide.Gui;
@@ -41,19 +43,12 @@ namespace EditorConfig.Addin
             if (config.Properties.Count == 0)
                 return;
 
-            //Log.Info(Log.Target.Console,
-            //         $"LoadSettings doc={doc} name=\"{doc.Name}\" props={config.Properties.Count}"
-            //);
-
-            TextEditor editor = doc.Editor;
-            if (editor == null)
+            if (!(doc.GetContent<ITextView>() is ITextView view))
                 return;
 
-            CustomEditorOptions options = new CustomEditorOptions(editor.Options);
-            LoadSettings_EndOfLine(options, config);
-            LoadSettings_IndentStyle(options, config);
-            LoadSettings_IndentSizeTabWidth(options, config);
-            editor.Options = options;
+            LoadSettings_EndOfLine(view.Options, config);
+            LoadSettings_IndentStyle(view.Options, config);
+            LoadSettings_IndentSizeTabWidth(view.Options, config);
         }
 
         public static void LoadSettings(IEnumerable<Document> docs)
@@ -62,34 +57,33 @@ namespace EditorConfig.Addin
                 LoadSettings(doc);
         }
 
-        static void LoadSettings_EndOfLine(CustomEditorOptions options, FileConfiguration config)
+        static void LoadSettings_EndOfLine(IEditorOptions options, FileConfiguration config)
         {
             if (config.EndOfLine == null)
                 return;
 
-            string eolMarker = null;
+            string eol = null;
             switch (config.EndOfLine.Value)
             {
                 case EndOfLine.CR:
-                    eolMarker = "\r";
+                    eol = "\r";
                     break;
 
                 case EndOfLine.LF:
-                    eolMarker = "\n";
+                    eol = "\n";
                     break;
 
                 case EndOfLine.CRLF:
-                    eolMarker = "\r\n";
+                    eol = "\r\n";
                     break;
             }
-            if (eolMarker == null)
+            if (eol == null)
                 return;
 
-            options.OverrideDocumentEolMarker = true;
-            options.DefaultEolMarker = eolMarker;
+            options.SetOptionValue(DefaultOptions.NewLineCharacterOptionId, eol);
         }
 
-        static void LoadSettings_IndentStyle(CustomEditorOptions options, FileConfiguration config)
+        static void LoadSettings_IndentStyle(IEditorOptions options, FileConfiguration config)
         {
             if (config.IndentStyle == null)
                 return;
@@ -97,16 +91,16 @@ namespace EditorConfig.Addin
             switch (config.IndentStyle.Value)
             {
                 case Core.IndentStyle.Tab:
-                    options.TabsToSpaces = false;
+                    options.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, false);
                     break;
 
                 case Core.IndentStyle.Space:
-                    options.TabsToSpaces = true;
+                    options.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, true);
                     break;
             }
         }
 
-        static void LoadSettings_IndentSizeTabWidth(CustomEditorOptions options, FileConfiguration config)
+        static void LoadSettings_IndentSizeTabWidth(IEditorOptions options, FileConfiguration config)
         {
             if (config.IndentSize.UseTabWidth &&
                 config.TabWidth == null &&
@@ -117,8 +111,7 @@ namespace EditorConfig.Addin
                 config.IndentSize.NumberOfColumns == null)
                 return;
 
-            //int size = options.IndentationSize;
-            int size = options.TabSize;
+            int size = options.GetTabSize();
 
             if (config.IndentSize.UseTabWidth)
             {
@@ -132,8 +125,7 @@ namespace EditorConfig.Addin
                 size = config.IndentSize.NumberOfColumns.Value;
             }
 
-            //options.IndentationSize = size;
-            options.TabSize = size;
+            options.SetOptionValue(DefaultOptions.TabSizeOptionId, size);
         }
 
 
@@ -154,10 +146,6 @@ namespace EditorConfig.Addin
 
         public static void Apply(Document doc, FileConfiguration config)
         {
-            //Log.Info(Log.Target.Console,
-            //         $"Apply doc={doc} name=\"{doc.Name}\" props={config.Properties.Count}"
-            //);
-
             if (doc == null)
                 return;
             if (config == null)
