@@ -2,6 +2,7 @@
 using MonoDevelop.Ide.Gui;
 using MonoDevelop.Projects;
 using System;
+using System.Threading.Tasks;
 
 namespace EditorConfig.Addin
 {
@@ -52,7 +53,7 @@ namespace EditorConfig.Addin
             document.Saved -= OnDocumentSaved;
         }
 
-        async void OnDocumentSaved(object sender, EventArgs e)
+        void OnDocumentSaved(object sender, EventArgs e)
         {
             Document document = sender as Document;
             if (document == null)
@@ -64,10 +65,12 @@ namespace EditorConfig.Addin
             Engine.LoadSettingsAndApply(document);
             try
             {
-                await document.Save();
+                Task.Run(async () => await document.Save()).Wait();
             }
-            catch (Exception ex)
+            catch (AggregateException aggregateException)
             {
+                Exception ex = aggregateException.InnerException;
+
                 string message =
                     $"Failed to save .editorconfig changes to " +
                     $"{document.FileName.FileName}";
@@ -84,7 +87,7 @@ namespace EditorConfig.Addin
             document.Saved += OnDocumentSaved;
         }
 
-        async void OnFileRenamedInProject(object sender, ProjectFileRenamedEventArgs e)
+        void OnFileRenamedInProject(object sender, ProjectFileRenamedEventArgs e)
         {
             // extensions may have changed so reload EditorConfigs
             foreach (ProjectFileRenamedEventInfo info in e)
@@ -93,7 +96,7 @@ namespace EditorConfig.Addin
                 if (document == null)
                     continue;
 
-                await document.Reload();
+                Task.Run(async () => await document.Reload()).Wait();
 
                 document = IdeApp.Workbench.GetDocument(info.NewName);
                 if (document == null)
