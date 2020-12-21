@@ -156,15 +156,13 @@ namespace EditorConfig.Addin
                 return;
 
             Apply_Charset(doc, config);
-            Apply_TrimTrailingWhitespace(doc.Editor, config);
-            Apply_InsertFinalNewline(doc.Editor, config);
-            if (LetEolApply)
-                Apply_EndOfLine(doc.Editor, config);
+            Apply_TrimTrailingWhitespace(doc, config);
+            //Apply_InsertFinalNewline(doc.Editor, config);
+            //if (LetEolApply)
+            //    Apply_EndOfLine(doc.Editor, config);
         }
 
-        static void Apply_Charset(
-            Document doc,
-            FileConfiguration config)
+        static void Apply_Charset(Document doc, FileConfiguration config)
         {
             if (config.Charset == null)
                 return;
@@ -195,9 +193,7 @@ namespace EditorConfig.Addin
             }
         }
 
-        static void Apply_TrimTrailingWhitespace(
-            TextEditor editor,
-            FileConfiguration config)
+        static void Apply_TrimTrailingWhitespace(Document doc, FileConfiguration config)
         {
             if (config.TrimTrailingWhitespace == null)
                 return;
@@ -205,33 +201,24 @@ namespace EditorConfig.Addin
             if (!config.TrimTrailingWhitespace.Value)
                 return;
 
-            List<TextChange> changes = new List<TextChange>();
+            ITextEdit edit = doc.TextBuffer.CreateEdit();
 
-            foreach (IDocumentLine line in editor.GetLines())
-                Apply_TrimTrailingWhitespace(editor, line, changes);
-
-            editor.ApplyTextChanges(changes);
-        }
-
-        static void Apply_TrimTrailingWhitespace(
-            TextEditor editor,
-            IDocumentLine line,
-            List<TextChange> changes)
-        {
-            int offset = line.EndOffset;
-            for (; offset > line.Offset; --offset)
+            foreach (ITextSnapshotLine line in doc.TextBuffer.CurrentSnapshot.Lines)
             {
-                char c = editor.GetCharAt(offset - 1);
+                if (line.Length == 0)
+                    continue;
 
-                if (!char.IsWhiteSpace(c))
-                    break;
+                int firstWhitespaceIndex = 1 + line.IndexOfPreviousNonWhiteSpaceCharacter(line.Length);
+                SnapshotPoint firstWhitespace = line.Start + firstWhitespaceIndex;
+
+                Span span = new Span(firstWhitespace, line.End - firstWhitespace);
+                if (span.Length == 0)
+                    continue;
+
+                edit.Replace(span, string.Empty);
             }
 
-            TextChange change = ChangeFromBounds(offset, line.EndOffset, string.Empty);
-            if (change.Span.Length == 0)
-                return;
-
-            changes.Add(change);
+            edit.Apply();
         }
 
         static void Apply_InsertFinalNewline(
