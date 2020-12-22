@@ -7,6 +7,7 @@ using MonoDevelop.Core.Text;
 using MonoDevelop.Ide.Editor;
 using MonoDevelop.Ide.Gui;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 using ITextDocument = Microsoft.VisualStudio.Text.ITextDocument;
@@ -155,9 +156,12 @@ namespace EditorConfig.Addin
             if (config.Properties.Count == 0)
                 return;
 
+            if (doc.GetContent<ITextView>() is not ITextView view)
+                return;
+
             Apply_Charset(doc, config);
-            Apply_TrimTrailingWhitespace(doc, config);
-            //Apply_InsertFinalNewline(doc.Editor, config);
+            Apply_TrimTrailingWhitespace(doc.TextBuffer, config);
+            Apply_InsertFinalNewline(doc.TextBuffer, view.Options, config);
             //if (LetEolApply)
             //    Apply_EndOfLine(doc.Editor, config);
         }
@@ -193,7 +197,7 @@ namespace EditorConfig.Addin
             }
         }
 
-        static void Apply_TrimTrailingWhitespace(Document doc, FileConfiguration config)
+        static void Apply_TrimTrailingWhitespace(ITextBuffer textBuffer, FileConfiguration config)
         {
             if (config.TrimTrailingWhitespace == null)
                 return;
@@ -201,9 +205,9 @@ namespace EditorConfig.Addin
             if (!config.TrimTrailingWhitespace.Value)
                 return;
 
-            ITextEdit edit = doc.TextBuffer.CreateEdit();
+            ITextEdit edit = textBuffer.CreateEdit();
 
-            foreach (ITextSnapshotLine line in doc.TextBuffer.CurrentSnapshot.Lines)
+            foreach (ITextSnapshotLine line in textBuffer.CurrentSnapshot.Lines)
             {
                 if (line.Length == 0)
                     continue;
@@ -222,58 +226,37 @@ namespace EditorConfig.Addin
         }
 
         static void Apply_InsertFinalNewline(
-            TextEditor editor,
+            ITextBuffer textBuffer,
+            IEditorOptions options,
             FileConfiguration config)
         {
             if (config.InsertFinalNewline == null)
                 return;
+            if (!config.InsertFinalNewline.Value)
+                return;
 
-            List<TextChange> changes = new List<TextChange>();
-
-            Apply_InsertFinalNewline(editor, config, changes);
-
-            editor.ApplyTextChanges(changes);
-        }
-
-        static void Apply_InsertFinalNewline(
-            TextEditor editor,
-            FileConfiguration config,
-            List<TextChange> changes)
-        {
-            IDocumentLine lastLine = editor.GetLine(editor.LineCount);
-
-            if (config.InsertFinalNewline.Value)
+            ITextSnapshotLine secondToLastLine = null;
+            ITextSnapshotLine lastLine = null;
+            foreach (ITextSnapshotLine line in textBuffer.CurrentSnapshot.Lines)
             {
-                if (lastLine.Length == 0)
-                    return;
-
-                string newlineString = GetBestNewlineString(editor, config, lastLine);
-                TextChange change = ChangeAtOffset(lastLine.EndOffset, newlineString);
-                changes.Add(change);
+                secondToLastLine = lastLine;
+                lastLine = line;
             }
-            else
-            {
-                int offset = lastLine.EndOffset;
-                for (int i = editor.LineCount; i > 0; --i)
-                {
-                    IDocumentLine currLine = editor.GetLine(i);
-                    if (currLine.Length != 0)
-                    {
-                        offset = currLine.EndOffset;
-                        break;
-                    }
-                }
 
-                // remove all trailing empty lines in one change
-                TextChange change = ChangeFromBounds(offset, lastLine.EndOffset, string.Empty);
-                changes.Add(change);
-            }
+            if (lastLine.Length == 0)
+                return;
+
+            string newlineString = GetBestNewlineString(options, config, secondToLastLine);
+
+            ITextEdit edit = textBuffer.CreateEdit();
+            edit.Insert(lastLine.End, newlineString);
+            edit.Apply();
         }
 
         static string GetBestNewlineString(
-            TextEditor editor,
+            IEditorOptions options,
             FileConfiguration config,
-            IDocumentLine line)
+            ITextSnapshotLine secondToLastLine)
         {
             if (config.EndOfLine != null)
             {
@@ -290,21 +273,12 @@ namespace EditorConfig.Addin
                 }
             }
 
-            IDocumentLine lineWithDelimiter = line;
-            if (line.UnicodeNewline == UnicodeNewline.Unknown)
-            {
-                // we don't have an end_of_line option AND this is the first line
-                // of the document...just use the editor default
-                if (line.PreviousLine == null)
-                    return editor.EolMarker;
+            // try to be smart and re-use the currently-last line break
+            if (secondToLastLine != null)
+                return secondToLastLine.GetLineBreakText();
 
-                lineWithDelimiter = line.PreviousLine;
-            }
-
-            int delimiterOffset = lineWithDelimiter.EndOffset + 1;
-            int delimiterEndOffset = lineWithDelimiter.EndOffsetIncludingDelimiter;
-            string delimiter = editor.GetTextBetween(delimiterOffset, delimiterEndOffset);
-            return delimiter;
+            // there's only one line, so just pull the EOL from options
+            return options.GetOptionValue(DefaultOptions.NewLineCharacterOptionId);
         }
 
         static void Apply_EndOfLine(
