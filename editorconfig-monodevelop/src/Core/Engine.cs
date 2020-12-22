@@ -1,23 +1,27 @@
 ﻿using EditorConfig.Core;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Microsoft.VisualStudio.Text.Editor;
-using MonoDevelop.Core.Text;
-using MonoDevelop.Ide.Editor;
 using MonoDevelop.Ide.Gui;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
 using ITextDocument = Microsoft.VisualStudio.Text.ITextDocument;
-using TextChange = Microsoft.CodeAnalysis.Text.TextChange;
 
 namespace EditorConfig.Addin
 {
     public static class Engine
     {
         public static bool LetEolApply { get; set; } = false;
+
+
+        static Dictionary<EndOfLine, string> EolStrings { get; } = new Dictionary<EndOfLine, string>
+        {
+            { EndOfLine.CR, "\r" },
+            { EndOfLine.LF, "\n" },
+            { EndOfLine.CRLF, "\r\n" },
+        };
 
 
         public static FileConfiguration ParseConfig(Document doc)
@@ -65,23 +69,7 @@ namespace EditorConfig.Addin
             if (config.EndOfLine == null)
                 return;
 
-            string eol = null;
-            switch (config.EndOfLine.Value)
-            {
-                case EndOfLine.CR:
-                    eol = "\r";
-                    break;
-
-                case EndOfLine.LF:
-                    eol = "\n";
-                    break;
-
-                case EndOfLine.CRLF:
-                    eol = "\r\n";
-                    break;
-            }
-            if (eol == null)
-                return;
+            string eol = EolStrings[config.EndOfLine.Value];
 
             options.SetOptionValue(DefaultOptions.NewLineCharacterOptionId, eol);
         }
@@ -93,11 +81,11 @@ namespace EditorConfig.Addin
 
             switch (config.IndentStyle.Value)
             {
-                case Core.IndentStyle.Tab:
+                case IndentStyle.Tab:
                     options.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, false);
                     break;
 
-                case Core.IndentStyle.Space:
+                case IndentStyle.Space:
                     options.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, true);
                     break;
             }
@@ -162,8 +150,8 @@ namespace EditorConfig.Addin
             Apply_Charset(doc, config);
             Apply_TrimTrailingWhitespace(doc.TextBuffer, config);
             Apply_InsertFinalNewline(doc.TextBuffer, view.Options, config);
-            //if (LetEolApply)
-            //    Apply_EndOfLine(doc.Editor, config);
+            if (LetEolApply)
+                Apply_EndOfLine(doc.TextBuffer, config);
         }
 
         static void Apply_Charset(Document doc, FileConfiguration config)
@@ -259,19 +247,7 @@ namespace EditorConfig.Addin
             ITextSnapshotLine secondToLastLine)
         {
             if (config.EndOfLine != null)
-            {
-                switch (config.EndOfLine.Value)
-                {
-                    case EndOfLine.CR:
-                        return "\r";
-
-                    case EndOfLine.LF:
-                        return "\n";
-
-                    case EndOfLine.CRLF:
-                        return "\r\n";
-                }
-            }
+                return EolStrings[config.EndOfLine.Value];
 
             // try to be smart and re-use the currently-last line break
             if (secondToLastLine != null)
@@ -281,66 +257,28 @@ namespace EditorConfig.Addin
             return options.GetOptionValue(DefaultOptions.NewLineCharacterOptionId);
         }
 
-        static void Apply_EndOfLine(
-            TextEditor editor,
-            FileConfiguration config)
+        static void Apply_EndOfLine(ITextBuffer textBuffer, FileConfiguration config)
         {
             if (config.EndOfLine == null)
                 return;
 
-            List<TextChange> changes = new List<TextChange>();
+            string eol = EolStrings[config.EndOfLine.Value];
 
-            for (int i = 1; i < editor.LineCount; ++i)
+            ITextEdit edit = textBuffer.CreateEdit();
+
+            foreach (ITextSnapshotLine line in textBuffer.CurrentSnapshot.Lines)
             {
-                IDocumentLine line = editor.GetLine(i);
-                Apply_EndOfLine(config, line, changes);
+                string currEol = line.GetLineBreakText();
+                if (currEol == eol)
+                    continue;
+                if (currEol.Length == 0)
+                    continue;
+
+                Span span = new Span(line.End, line.EndIncludingLineBreak - line.End);
+                edit.Replace(span, eol);
             }
 
-            editor.ApplyTextChanges(changes);
-        }
-
-        static void Apply_EndOfLine(
-            FileConfiguration config,
-            IDocumentLine line,
-            List<TextChange> changes)
-        {
-            string eolMarker = null;
-            switch (config.EndOfLine.Value)
-            {
-                case EndOfLine.CR:
-                    if (line.UnicodeNewline != UnicodeNewline.CR)
-                        eolMarker = "\r";
-                    break;
-
-                case EndOfLine.LF:
-                    if (line.UnicodeNewline != UnicodeNewline.LF)
-                        eolMarker = "\n";
-                    break;
-
-                case EndOfLine.CRLF:
-                    if (line.UnicodeNewline != UnicodeNewline.CRLF)
-                        eolMarker = "\r\n";
-                    break;
-            }
-            if (eolMarker == null)
-                return;
-
-            TextChange change = ChangeFromBounds(line.EndOffset, line.EndOffsetIncludingDelimiter, eolMarker);
-            changes.Add(change);
-        }
-
-        static TextChange ChangeFromBounds(int offset, int endOffset, string text)
-        {
-            TextSpan span = new TextSpan(offset, endOffset - offset);
-            TextChange change = new TextChange(span, text);
-            return change;
-        }
-
-        static TextChange ChangeAtOffset(int offset, string text)
-        {
-            TextSpan span = new TextSpan(offset, 0);
-            TextChange change = new TextChange(span, text);
-            return change;
+            edit.Apply();
         }
 
 
