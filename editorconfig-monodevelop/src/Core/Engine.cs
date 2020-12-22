@@ -4,7 +4,6 @@ using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Microsoft.VisualStudio.Text.Editor;
 using MonoDevelop.Ide.Gui;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 using ITextDocument = Microsoft.VisualStudio.Text.ITextDocument;
