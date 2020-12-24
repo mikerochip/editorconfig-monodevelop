@@ -4,6 +4,7 @@ using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Microsoft.VisualStudio.Text.Editor;
 using MonoDevelop.Ide.Gui;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace EditorConfig.Addin
@@ -27,7 +28,7 @@ namespace EditorConfig.Addin
                 return null;
 
             EditorConfigParser parser = new EditorConfigParser();
-            FileConfiguration config = parser.Parse(doc.Name);
+            FileConfiguration config = parser.Parse(doc.FilePath.ToString()).FirstOrDefault();
             return config;
         }
 
@@ -113,6 +114,7 @@ namespace EditorConfig.Addin
                 size = config.IndentSize.NumberOfColumns.Value;
             }
 
+            options.SetOptionValue(DefaultOptions.IndentSizeOptionId, size);
             options.SetOptionValue(DefaultOptions.TabSizeOptionId, size);
         }
 

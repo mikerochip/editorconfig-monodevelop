@@ -4,7 +4,7 @@
     <LangVersion>9.0</LangVersion>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="editorconfig" Version="0.12.2" />
+    <PackageReference Include="editorconfig" Version="0.12.1" />
     <PackageReference Include="MonoDevelop.Addins" Version="0.4.7" />
   </ItemGroup>
   <ItemGroup>

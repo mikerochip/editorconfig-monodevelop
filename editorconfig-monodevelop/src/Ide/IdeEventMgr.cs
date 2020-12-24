@@ -65,7 +65,7 @@ namespace EditorConfig.Addin
             Engine.LoadSettingsAndApply(document);
             try
             {
-                Task.Run(async () => await document.Save()).Wait();
+                document.Save().Ignore();
             }
             catch (AggregateException aggregateException)
             {
@@ -96,7 +96,7 @@ namespace EditorConfig.Addin
                 if (document == null)
                     continue;
 
-                Task.Run(async () => await document.Reload()).Wait();
+                document.Reload().Ignore();
 
                 document = IdeApp.Workbench.GetDocument(info.NewName);
                 if (document == null)
