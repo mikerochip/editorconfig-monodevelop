@@ -6,8 +6,6 @@ using MonoDevelop.Ide.Gui;
 using System.Collections.Generic;
 using System.Text;
 
-using ITextDocument = Microsoft.VisualStudio.Text.ITextDocument;
-
 namespace EditorConfig.Addin
 {
     public static class Engine
