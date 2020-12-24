@@ -2,7 +2,6 @@
 using MonoDevelop.Ide.Gui;
 using MonoDevelop.Projects;
 using System;
-using System.Threading.Tasks;
 
 namespace EditorConfig.Addin
 {
@@ -35,8 +34,7 @@ namespace EditorConfig.Addin
 
         void OnDocumentOpened(object sender, DocumentEventArgs e)
         {
-            Document document = e.Document;
-            if (document == null)
+            if (e.Document is not Document document)
                 return;
 
             Engine.LoadSettings(document);
@@ -46,8 +44,7 @@ namespace EditorConfig.Addin
 
         void OnDocumentClosed(object sender, DocumentEventArgs e)
         {
-            Document document = e.Document;
-            if (document == null)
+            if (e.Document is not Document document)
                 return;
 
             document.Saved -= OnDocumentSaved;
@@ -55,8 +52,7 @@ namespace EditorConfig.Addin
 
         void OnDocumentSaved(object sender, EventArgs e)
         {
-            Document document = sender as Document;
-            if (document == null)
+            if (sender is not Document document)
                 return;
 
             // remove save hook so we can apply EditorConfigs and re-save

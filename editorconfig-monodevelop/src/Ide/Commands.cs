@@ -102,8 +102,7 @@ namespace EditorConfig.Addin
         {
             Engine.LetEolApply = !Engine.LetEolApply;
 
-            if (PropertyMgr.Get() != null)
-                PropertyMgr.Get().SaveLetEolApply();
+            PropertyMgr.Get()?.SaveLetEolApply();
         }
     }
 
