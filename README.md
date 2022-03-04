@@ -1,3 +1,9 @@
+# ARCHIVE NOTE
+
+March 4, 2022: This repo was an implementation of an EditorConfig addin to add support for .editorconfig to [MonoDevelop](https://github.com/mono/monodevelop). MonoDevelop was (is?) the underlying software behind Visual Studio for Mac. This addin [hasn't been needed since 2018](https://docs.microsoft.com/en-us/visualstudio/releasenotes/vs2017-mac-relnotes-v7.5#release-highlights), the MonoDevelop codebase hasn't been maintained since Jan 2020, and Microsoft is currently hinting at a rebuild of VS for Mac in their [roadmap page](https://docs.microsoft.com/en-us/visualstudio/productinfo/mac-roadmap). So this repo has effectively been obviated for quite a while.
+
+---
+
 # EditorConfig Plugin for MonoDevelop and Visual Studio for Mac
 
 This is an [EditorConfig][] plugin for [MonoDevelop][] and [Visual Studio for Mac][].
